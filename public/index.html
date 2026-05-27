@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物販ツール - トレンド商品リサーチ</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      padding: 16px 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .header-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; gap: 16px; }
+    .logo { font-size: 22px; font-weight: 700; color: #e94560; letter-spacing: 2px; }
+    .tagline { font-size: 13px; color: #8892b0; }
+    .container { max-width: 1100px; margin: 24px auto; padding: 0 16px; display: flex; flex-direction: column; gap: 20px; }
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card-title { font-size: 17px; font-weight: 700; color: #1a1a2e; margin-bottom: 18px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .icon { font-size: 20px; }
+    .source-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .source-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .source-btn input[type="checkbox"] { display: none; }
+    .source-label { padding: 8px 20px; border-radius: 24px; font-size: 14px; font-weight: 600; border: 2px solid transparent; transition: all 0.2s; user-select: none; cursor: pointer; }
+    .x-label      { background: #1a1a1a; color: #fff; border-color: #333; }
+    .google-label  { background: #4285f4; color: #fff; border-color: #4285f4; }
+    .tiktok-label  { background: #ff0050; color: #fff; border-color: #ff0050; }
+    .rakuten-label { background: #bf0000; color: #fff; border-color: #bf0000; }
+    .source-btn input:checked + .source-label { box-shadow: 0 0 0 3px rgba(233,69,96,0.4); }
+    .source-btn input:not(:checked) + .source-label { opacity: 0.4; filter: grayscale(0.6); }
+    .btn { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .btn:active { transform: translateY(0); }
+    .btn-primary { background: #0f3460; color: #fff; }
+    .btn-primary:hover { background: #16213e; }
+    .btn-success { background: #e94560; color: #fff; }
+    .btn-success:hover { background: #c73652; }
+    .updated-time { font-size: 12px; color: #888; margin-top: 8px; }
+    .trends-container { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+    .trend-source-title { font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 6px; display: inline-block; margin-bottom: 10px; color: #fff; }
+    .source-x { background: #1a1a1a; }
+    .source-google { background: #4285f4; }
+    .source-tiktok { background: #ff0050; }
+    .source-rakuten { background: #bf0000; }
+    .trend-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; background: #f8f9fc; margin-bottom: 6px; cursor: pointer; transition: background 0.15s; }
+    .trend-item:hover { background: #eef0f8; }
+    .trend-rank { font-size: 16px; font-weight: 700; color: #e94560; min-width: 28px; text-align: center; }
+    .trend-info { flex: 1; }
+    .trend-keyword { font-size: 14px; font-weight: 600; }
+    .trend-meta { font-size: 11px; color: #888; margin-top: 2px; }
+    .trend-change { font-size: 12px; font-weight: 600; color: #2ecc71; white-space: nowrap; }
+    .trend-category { font-size: 11px; background: #e8eaf6; color: #3f51b5; padding: 2px 8px; border-radius: 12px; }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    .input { width: 100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
+    .input:focus { outline: none; border-color: #0f3460; }
+    .table-wrapper { overflow-x: auto; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .data-table th { background: #f0f2f5; padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; color: #555; white-space: nowrap; }
+    .data-table td { padding: 12px 14px; border-bottom: 1px solid #f0f2f5; }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: #f8f9fc; }
+    .supplier-name { font-weight: 600; }
+    .type-badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; white-space: nowrap; }
+    .type-domestic { background: #e8f5e9; color: #388e3c; }
+    .type-china    { background: #fff3e0; color: #f57c00; }
+    .price-cell { font-weight: 700; color: #e94560; }
+    .link-btn { display: inline-block; padding: 4px 12px; background: #0f3460; color: #fff; border-radius: 6px; font-size: 12px; text-decoration: none; transition: background 0.2s; }
+    .link-btn:hover { background: #16213e; }
+    .stars { color: #f39c12; font-size: 13px; }
+    .comparison-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .comparison-grid { grid-template-columns: 1fr; } }
+    .comparison-card { border-radius: 10px; padding: 20px; }
+    .comparison-card.amazon { background: linear-gradient(135deg, #232f3e, #37475a); color: #fff; }
+    .comparison-card.ours   { background: linear-gradient(135deg, #e94560, #c73652); color: #fff; }
+    .comparison-platform { font-size: 13px; font-weight: 600; opacity: 0.8; margin-bottom: 8px; }
+    .comparison-price { font-size: 32px; font-weight: 700; margin-bottom: 12px; }
+    .comparison-price span { font-size: 16px; }
+    .comparison-details { font-size: 13px; line-height: 1.8; }
+    .comparison-details .label { opacity: 0.7; }
+    .comparison-details .value { font-weight: 600; }
+    .profit-positive { color: #2ecc71 !important; font-weight: 700 !important; }
+    .profit-negative { color: #e74c3c !important; font-weight: 700 !important; }
+    .recommendation-badge { display: inline-block; margin-top: 16px; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 13px; font-weight: 700; }
+    .keyword-badge { font-size: 13px; background: #e8eaf6; color: #3f51b5; padding: 2px 10px; border-radius: 12px; font-weight: 600; }
+    .count-badge { font-size: 13px; background: #e94560; color: #fff; padding: 2px 10px; border-radius: 12px; font-weight: 700; }
+    .products-list { display: flex; flex-direction: column; gap: 10px; }
+    .product-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8f9fc; border-radius: 8px; flex-wrap: wrap; gap: 8px; }
+    .product-keyword { font-weight: 600; font-size: 15px; }
+    .product-meta { font-size: 12px; color: #888; }
+    .product-margin { font-size: 13px; font-weight: 700; color: #2ecc71; }
+    .empty-msg { color: #aaa; font-size: 14px; text-align: center; padding: 20px 0; }
+    .hidden { display: none !important; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .price-row { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 700px) { .form-row, .price-row { grid-template-columns: 1fr; } }
+    .required { color: #e94560; }
+    .btn-outline { background: #fff; color: #0f3460; border: 2px solid #0f3460; }
+    .btn-outline:hover { background: #f0f4ff; }
+    .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: color 0.2s; }
+    .delete-btn:hover { color: #e94560; }
+    .product-actions { display: flex; align-items: center; gap: 12px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a2e; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 1000; animation: slideIn 0.3s ease; }
+    .toast.success { border-left: 4px solid #2ecc71; }
+    .toast.error   { border-left: 4px solid #e74c3c; }
+    @keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1 class="logo">物販ツール</h1>
+      <span class="tagline">最新のトレンド商品リサーチ</span>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- トレンドソース選択 -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">📊</span> トレンドソース</h2>
+      <div class="source-buttons">
+        <label class="source-btn"><input type="checkbox" value="X" checked><span class="source-label x-label">𝕏 (Twitter)</span></label>
+        <label class="source-btn"><input type="checkbox" value="Google" checked><span class="source-label google-label">Google</span></label>
+        <label class="source-btn"><input type="checkbox" value="TikTok" checked><span class="source-label tiktok-label">TikTok</span></label>
+        <label class="source-btn"><input type="checkbox" value="Rakuten" checked><span class="source-label rakuten-label">楽天</span></label>
+      </div>
+      <button class="btn btn-primary" id="fetch-trends-btn">トレンド取得</button>
+      <div id="trends-updated" class="updated-time"></div>
+      <div id="trends-container" class="trends-container"></div>
+    </section>
+
+    <!-- 商品登録 -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">📦</span> 商品登録</h2>
+      <div class="form-row">
+        <div class="form-group">
+          <label>キーワード <span class="required">*</span></label>
+          <input type="text" id="keyword-input" class="input" placeholder="例: ワイヤレスイヤホン">
+        </div>
+        <div class="form-group">
+          <label>Amazon URL（任意）</label>
+          <input type="url" id="url-input" class="input" placeholder="https://www.amazon.co.jp/dp/...">
+        </div>
+      </div>
+      <div class="form-row price-row">
+        <div class="form-group">
+          <label>仕入れ価格（円）</label>
+          <input type="number" id="cost-input" class="input" placeholder="例: 800" min="0">
+        </div>
+        <div class="form-group">
+          <label>Amazon販売価格（円）</label>
+          <input type="number" id="amazon-price-input" class="input" placeholder="例: 2980" min="0">
+        </div>
+        <div class="form-group">
+          <label>弊社販売価格（円）</label>
+          <input type="number" id="our-price-input" class="input" placeholder="例: 3480" min="0">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-success" id="register-btn">登録・分析</button>
+        <button class="btn btn-outline" id="export-btn">CSVエクスポート</button>
+      </div>
+    </section>
+
+    <!-- 分析結果 -->
+    <div id="analysis-result" class="hidden">
+      <section class="card">
+        <h2 class="card-title"><span class="icon">🏭</span> 仕入れ先一覧 <span id="analysis-keyword" class="keyword-badge"></span></h2>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>仕入れ先</th><th>種別</th><th>仕入れ価格</th><th>最低ロット</th><th>納期</th><th>評価</th><th>リンク</th>
+              </tr>
+            </thead>
+            <tbody id="suppliers-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title"><span class="icon">💹</span> 販売価格比較</h2>
+        <div class="comparison-grid" id="comparison-grid"></div>
+      </section>
+    </div>
+
+    <!-- 登録済み商品 -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">📋</span> 登録済み商品 <span id="products-count" class="count-badge">0</span></h2>
+      <div id="products-list" class="products-list">
+        <p class="empty-msg">登録済みの商品はありません</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const TREND_DATA = {
+      X: [
+        { rank:1, keyword:"ワイヤレスイヤホン",     volume:12500, change:"+15%", category:"家電" },
+        { rank:2, keyword:"美顔器",                 volume:9800,  change:"+32%", category:"美容" },
+        { rank:3, keyword:"折りたたみスマホスタンド", volume:7600,  change:"+8%",  category:"スマホアクセサリ" },
+        { rank:4, keyword:"プロテインシェイカー",    volume:6200,  change:"+21%", category:"スポーツ" },
+        { rank:5, keyword:"LEDデスクライト",         volume:5400,  change:"+11%", category:"インテリア" },
+      ],
+      Google: [
+        { rank:1, keyword:"空気清浄機",     volume:45000, change:"+28%", category:"家電" },
+        { rank:2, keyword:"電動歯ブラシ",   volume:38000, change:"+19%", category:"日用品" },
+        { rank:3, keyword:"スマートウォッチ", volume:32000, change:"+41%", category:"家電" },
+        { rank:4, keyword:"コードレス掃除機", volume:29000, change:"+14%", category:"家電" },
+        { rank:5, keyword:"水筒 保温",      volume:24000, change:"+7%",  category:"キッチン" },
+      ],
+      TikTok: [
+        { rank:1, keyword:"ネイルアート用品",     volume:88000, change:"+67%", category:"美容" },
+        { rank:2, keyword:"ミニ加湿器",           volume:72000, change:"+53%", category:"家電" },
+        { rank:3, keyword:"猫用おもちゃ",         volume:65000, change:"+38%", category:"ペット" },
+        { rank:4, keyword:"マグネット収納ラック",  volume:58000, change:"+45%", category:"インテリア" },
+        { rank:5, keyword:"グロウアイシャドウ",    volume:49000, change:"+72%", category:"美容" },
+      ],
+    };
+
+    const SUPPLIERS = [
+      { name:"アリババ",           type:"中国卸", price:380,  moq:50,  lead:"2〜3週間", url:"https://www.alibaba.com/trade/search?SearchText=",    rating:4.2 },
+      { name:"NETSEA（ネッシー）",  type:"国内卸", price:1200, moq:10,  lead:"3〜5日",   url:"https://www.netsea.jp/search?keyword=",               rating:4.5 },
+      { name:"スーパーデリバリー",   type:"国内卸", price:1450, moq:5,   lead:"2〜4日",   url:"https://www.superdelivery.com/p/r/ppg_d/1/?free=",    rating:4.7 },
+      { name:"1688.com",            type:"中国卸", price:290,  moq:100, lead:"3〜4週間", url:"https://s.1688.com/selloffer/offerlist.htm?keywords=", rating:3.9 },
+    ];
+
+    const STORAGE_KEY = "butsuhan_products";
+    let registeredProducts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+    function saveProducts() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(registeredProducts));
+    }
+
+    // ---- トレンド ----
+    function getSelectedSources() {
+      return Array.from(document.querySelectorAll(".source-btn input:checked")).map(cb => cb.value);
+    }
+
+    async function fetchTrends() {
+      const sources = getSelectedSources();
+      if (!sources.length) { showToast("ソースを1つ以上選択してください", "error"); return; }
+      const container = document.getElementById("trends-container");
+      container.innerHTML = '<div style="padding:20px;color:#888;font-size:13px;">取得中...</div>';
+      const now = new Date();
+      document.getElementById("trends-updated").textContent =
+        `最終更新: ${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
+
+      const colorMap = { X:"source-x", Google:"source-google", TikTok:"source-tiktok", Rakuten:"source-rakuten" };
+      container.innerHTML = "";
+
+      // Google・楽天はAPIから取得、X・TikTokはモックデータ
+      const apiSources = sources.filter(s => s === 'Google' || s === 'Rakuten');
+      const mockSources = sources.filter(s => s !== 'Google' && s !== 'Rakuten');
+
+      // モックデータをまず表示
+      mockSources.forEach(src => {
+        const items = TREND_DATA[src] || [];
+        renderTrendBlock(src, items, colorMap[src], container);
+      });
+
+      // APIソースを非同期取得
+      for (const src of apiSources) {
+        const apiKey = src === 'Rakuten' ? 'rakuten' : 'google';
+        try {
+          const res = await fetch(`/api/trends?source=${apiKey}`);
+          const data = await res.json();
+          if (data.success && data.items?.length) {
+            renderTrendBlock(src, data.items, colorMap[src], container);
+          } else {
+            renderTrendBlock(src, TREND_DATA[src] || [], colorMap[src], container, `(API未取得: ${data.error || ''})`);
+          }
+        } catch(e) {
+          renderTrendBlock(src, TREND_DATA[src] || [], colorMap[src], container, '(API接続失敗)');
+        }
+      }
+    }
+
+    function renderTrendBlock(src, items, colorClass, container, note = '') {
+      const block = document.createElement("div");
+      const label = src === 'Rakuten' ? '楽天' : src;
+      block.innerHTML = `<div class="trend-source-title ${colorClass}">${label}${note ? ' <span style="font-size:11px;opacity:.7">'+note+'</span>' : ''}</div>`;
+      items.forEach(item => {
+          const el = document.createElement("div");
+          el.className = "trend-item";
+          el.innerHTML = `
+            <div class="trend-rank">${item.rank}</div>
+            <div class="trend-info">
+              <div class="trend-keyword">${item.keyword}</div>
+              <div class="trend-meta">検索ボリューム: ${item.volume.toLocaleString()}</div>
+            </div>
+            <div class="trend-change">${item.change}</div>
+            <div class="trend-category">${item.category}</div>`;
+          el.addEventListener("click", () => {
+            document.getElementById("keyword-input").value = item.keyword;
+            document.getElementById("keyword-input").focus();
+            document.querySelector(".card:nth-child(2)").scrollIntoView({ behavior:"smooth" });
+          });
+          block.appendChild(el);
+        });
+        container.appendChild(block);
+    }
+
+    document.getElementById("fetch-trends-btn").addEventListener("click", fetchTrends);
+    fetchTrends();
+
+    // ---- 登録・分析 ----
+    document.getElementById("register-btn").addEventListener("click", () => {
+      const keyword = document.getElementById("keyword-input").value.trim();
+      const url = document.getElementById("url-input").value.trim();
+      if (!keyword && !url) { showToast("キーワードまたはURLを入力してください", "error"); return; }
+
+      const kw = keyword || "商品";
+      const costPrice   = parseInt(document.getElementById("cost-input").value)   || 890;
+      const amazonPrice = parseInt(document.getElementById("amazon-price-input").value) || 2980;
+      const ourPrice    = parseInt(document.getElementById("our-price-input").value)    || 3480;
+      const amazonFee = 0.15;
+      const ourFee = 0.05;
+      const amazonProfit = Math.round(amazonPrice * (1 - amazonFee) - costPrice);
+      const ourProfit    = Math.round(ourPrice    * (1 - ourFee)    - costPrice);
+      const amazonMargin = ((amazonProfit / amazonPrice) * 100).toFixed(1);
+      const ourMargin    = ((ourProfit    / ourPrice)    * 100).toFixed(1);
+
+      const product = {
+        id: Date.now(),
+        keyword: kw,
+        url,
+        registeredAt: new Date().toLocaleString("ja-JP"),
+        pc: { costPrice, amazonPrice, ourPrice, amazonFee: amazonFee*100, ourFee: ourFee*100,
+              amazonProfit, ourProfit, amazonMargin, ourMargin,
+              recommendation: ourProfit > amazonProfit ? "弊社販売有利" : "Amazon出品有利" },
+      };
+      registeredProducts.unshift(product);
+      saveProducts();
+
+      // 仕入れ先
+      document.getElementById("analysis-keyword").textContent = kw;
+      const tbody = document.getElementById("suppliers-tbody");
+      tbody.innerHTML = "";
+      SUPPLIERS.forEach(s => {
+        const isChina = s.type.includes("中国");
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td class="supplier-name">${s.name}</td>
+          <td><span class="type-badge ${isChina?"type-china":"type-domestic"}">${s.type}</span></td>
+          <td class="price-cell">¥${s.price.toLocaleString()}</td>
+          <td>${s.moq}個〜</td>
+          <td>${s.lead}</td>
+          <td><span class="stars">${"★".repeat(Math.round(s.rating))}${"☆".repeat(5-Math.round(s.rating))}</span> ${s.rating}</td>
+          <td><a href="${s.url}${encodeURIComponent(kw)}" target="_blank" class="link-btn">検索</a></td>`;
+        tbody.appendChild(tr);
+      });
+
+      // 価格比較
+      const pc = product.pc;
+      document.getElementById("comparison-grid").innerHTML = `
+        <div class="comparison-card amazon">
+          <div class="comparison-platform">Amazon 出品</div>
+          <div class="comparison-price"><span>¥</span>${pc.amazonPrice.toLocaleString()}</div>
+          <div class="comparison-details">
+            <div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div>
+            <div><span class="label">手数料: </span><span class="value">${pc.amazonFee}%</span></div>
+            <div><span class="label">利益: </span><span class="value ${pc.amazonProfit>=0?"profit-positive":"profit-negative"}">¥${pc.amazonProfit.toLocaleString()}</span></div>
+            <div><span class="label">利益率: </span><span class="value">${pc.amazonMargin}%</span></div>
+          </div>
+        </div>
+        <div class="comparison-card ours">
+          <div class="comparison-platform">弊社 販売</div>
+          <div class="comparison-price"><span>¥</span>${pc.ourPrice.toLocaleString()}</div>
+          <div class="comparison-details">
+            <div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div>
+            <div><span class="label">手数料: </span><span class="value">${pc.ourFee}%</span></div>
+            <div><span class="label">利益: </span><span class="value ${pc.ourProfit>=0?"profit-positive":"profit-negative"}">¥${pc.ourProfit.toLocaleString()}</span></div>
+            <div><span class="label">利益率: </span><span class="value">${pc.ourMargin}%</span></div>
+          </div>
+          <div class="recommendation-badge">✓ ${pc.recommendation}</div>
+        </div>`;
+
+      document.getElementById("analysis-result").classList.remove("hidden");
+      document.getElementById("analysis-result").scrollIntoView({ behavior:"smooth" });
+
+      renderProducts();
+      showToast("商品を登録しました", "success");
+    });
+
+    function renderProducts() {
+      const list = document.getElementById("products-list");
+      document.getElementById("products-count").textContent = registeredProducts.length;
+      if (!registeredProducts.length) { list.innerHTML = '<p class="empty-msg">登録済みの商品はありません</p>'; return; }
+      list.innerHTML = "";
+      registeredProducts.forEach(p => {
+        const el = document.createElement("div");
+        el.className = "product-item";
+        el.innerHTML = `
+          <div style="flex:1">
+            <div class="product-keyword">${p.keyword}</div>
+            <div class="product-meta">登録: ${p.registeredAt} | 仕入れ¥${p.pc.costPrice.toLocaleString()} / Amazon¥${p.pc.amazonPrice.toLocaleString()} / 弊社¥${p.pc.ourPrice.toLocaleString()}${p.url?" | "+p.url.slice(0,35)+"...":""}</div>
+          </div>
+          <div class="product-actions">
+            <div class="product-margin">利益率 ${p.pc.ourMargin}%</div>
+            <button class="delete-btn" data-id="${p.id}" title="削除">✕</button>
+          </div>`;
+        list.appendChild(el);
+      });
+      list.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = parseInt(e.currentTarget.dataset.id);
+          registeredProducts = registeredProducts.filter(p => p.id !== id);
+          saveProducts();
+          renderProducts();
+          showToast("削除しました");
+        });
+      });
+    }
+
+    // ---- CSV エクスポート ----
+    document.getElementById("export-btn").addEventListener("click", () => {
+      if (!registeredProducts.length) { showToast("登録済み商品がありません", "error"); return; }
+      const header = ["キーワード","仕入れ価格","Amazon販売価格","弊社販売価格","Amazon利益","弊社利益","Amazon利益率%","弊社利益率%","推薦","登録日時","URL"];
+      const rows = registeredProducts.map(p => [
+        p.keyword, p.pc.costPrice, p.pc.amazonPrice, p.pc.ourPrice,
+        p.pc.amazonProfit, p.pc.ourProfit, p.pc.amazonMargin, p.pc.ourMargin,
+        p.pc.recommendation, p.registeredAt, p.url || ""
+      ]);
+      const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob(["﻿"+csv], { type:"text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `物販リサーチ_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast("CSVをダウンロードしました");
+    });
+
+    // 起動時に保存済み商品を表示
+    renderProducts();
+
+    function showToast(msg, type="success") {
+      document.querySelector(".toast")?.remove();
+      const t = document.createElement("div");
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      document.body.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+  </script>
+</body>
+</html>
