@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物販ツール - トレンド商品リサーチ</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1 class="logo">物販ツール</h1>
+      <span class="tagline">最新のトレンド商品リサーチ</span>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- トレンドソース選択 -->
+    <section class="card" id="trend-section">
+      <h2 class="card-title">
+        <span class="icon">📊</span> トレンドソース
+      </h2>
+      <div class="source-buttons">
+        <label class="source-btn" data-source="X">
+          <input type="checkbox" value="X" checked>
+          <span class="source-label x-label">𝕏 (Twitter)</span>
+        </label>
+        <label class="source-btn" data-source="Google">
+          <input type="checkbox" value="Google" checked>
+          <span class="source-label google-label">Google</span>
+        </label>
+        <label class="source-btn" data-source="TikTok">
+          <input type="checkbox" value="TikTok" checked>
+          <span class="source-label tiktok-label">TikTok</span>
+        </label>
+      </div>
+      <button class="btn btn-primary" id="fetch-trends-btn">
+        トレンド取得
+      </button>
+      <div id="trends-updated" class="updated-time"></div>
+
+      <div id="trends-container" class="trends-container"></div>
+    </section>
+
+    <!-- 商品登録 -->
+    <section class="card" id="register-section">
+      <h2 class="card-title">
+        <span class="icon">📦</span> 商品登録
+      </h2>
+      <div class="form-group">
+        <label>キーワード</label>
+        <input type="text" id="keyword-input" class="input" placeholder="例: ワイヤレスイヤホン">
+      </div>
+      <div class="form-group">
+        <label>Amazon URL（任意）</label>
+        <input type="url" id="url-input" class="input" placeholder="https://www.amazon.co.jp/dp/...">
+      </div>
+      <button class="btn btn-success" id="register-btn">登録・分析</button>
+    </section>
+
+    <!-- 分析結果 -->
+    <div id="analysis-result" class="hidden">
+
+      <!-- 仕入れ先 -->
+      <section class="card">
+        <h2 class="card-title">
+          <span class="icon">🏭</span> 仕入れ先一覧
+          <span id="analysis-keyword" class="keyword-badge"></span>
+        </h2>
+        <div class="table-wrapper">
+          <table class="data-table" id="suppliers-table">
+            <thead>
+              <tr>
+                <th>仕入れ先</th>
+                <th>種別</th>
+                <th>仕入れ価格</th>
+                <th>最低ロット</th>
+                <th>納期</th>
+                <th>評価</th>
+                <th>リンク</th>
+              </tr>
+            </thead>
+            <tbody id="suppliers-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 価格比較 -->
+      <section class="card">
+        <h2 class="card-title">
+          <span class="icon">💹</span> 販売価格比較
+        </h2>
+        <div class="comparison-grid" id="comparison-grid"></div>
+      </section>
+
+    </div>
+
+    <!-- 登録済み商品リスト -->
+    <section class="card" id="products-section">
+      <h2 class="card-title">
+        <span class="icon">📋</span> 登録済み商品
+        <span id="products-count" class="count-badge">0</span>
+      </h2>
+      <div id="products-list" class="products-list">
+        <p class="empty-msg">登録済みの商品はありません</p>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,357 @@
+/* ベース */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: #f0f2f5;
+  color: #1a1a2e;
+  min-height: 100vh;
+}
+
+/* ヘッダー */
+.header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 16px 24px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #e94560;
+  letter-spacing: 2px;
+}
+.tagline {
+  font-size: 13px;
+  color: #8892b0;
+}
+
+/* コンテナ */
+.container {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* カード */
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.card-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.icon { font-size: 20px; }
+
+/* ソースボタン */
+.source-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.source-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.source-btn input[type="checkbox"] { display: none; }
+.source-label {
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  user-select: none;
+  cursor: pointer;
+}
+.x-label      { background: #1a1a1a; color: #fff; border-color: #333; }
+.google-label  { background: #4285f4; color: #fff; border-color: #4285f4; }
+.tiktok-label  { background: #ff0050; color: #fff; border-color: #ff0050; }
+
+.source-btn input:checked + .source-label { box-shadow: 0 0 0 3px rgba(233,69,96,0.4); }
+.source-btn input:not(:checked) + .source-label { opacity: 0.4; filter: grayscale(0.6); }
+
+/* ボタン */
+.btn {
+  padding: 10px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.btn:active { transform: translateY(0); }
+.btn-primary { background: #0f3460; color: #fff; }
+.btn-primary:hover { background: #16213e; }
+.btn-success { background: #e94560; color: #fff; }
+.btn-success:hover { background: #c73652; }
+
+.updated-time {
+  font-size: 12px;
+  color: #888;
+  margin-top: 8px;
+}
+
+/* トレンド */
+.trends-container {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.trend-source-block { }
+.trend-source-title {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.source-x     { background: #1a1a1a; }
+.source-google { background: #4285f4; }
+.source-tiktok { background: #ff0050; }
+
+.trend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8f9fc;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.trend-item:hover { background: #eef0f8; }
+.trend-rank {
+  font-size: 16px;
+  font-weight: 700;
+  color: #e94560;
+  min-width: 28px;
+  text-align: center;
+}
+.trend-info { flex: 1; }
+.trend-keyword { font-size: 14px; font-weight: 600; }
+.trend-meta { font-size: 11px; color: #888; margin-top: 2px; }
+.trend-change {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2ecc71;
+  white-space: nowrap;
+}
+.trend-category {
+  font-size: 11px;
+  background: #e8eaf6;
+  color: #3f51b5;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* フォーム */
+.form-group { margin-bottom: 14px; }
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+.input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+.input:focus { outline: none; border-color: #0f3460; }
+
+/* テーブル */
+.table-wrapper { overflow-x: auto; }
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.data-table th {
+  background: #f0f2f5;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #555;
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f0f2f5;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: #f8f9fc; }
+
+.supplier-name { font-weight: 600; }
+.type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+.type-domestic { background: #e8f5e9; color: #388e3c; }
+.type-china    { background: #fff3e0; color: #f57c00; }
+.price-cell { font-weight: 700; color: #e94560; }
+.link-btn {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #0f3460;
+  color: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.link-btn:hover { background: #16213e; }
+
+.stars { color: #f39c12; font-size: 13px; }
+
+/* 比較グリッド */
+.comparison-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 600px) {
+  .comparison-grid { grid-template-columns: 1fr; }
+}
+.comparison-card {
+  border-radius: 10px;
+  padding: 20px;
+}
+.comparison-card.amazon { background: linear-gradient(135deg, #232f3e, #37475a); color: #fff; }
+.comparison-card.ours   { background: linear-gradient(135deg, #e94560, #c73652); color: #fff; }
+
+.comparison-platform {
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 8px;
+}
+.comparison-price {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.comparison-price span { font-size: 16px; }
+.comparison-details { font-size: 13px; line-height: 1.8; }
+.comparison-details .label { opacity: 0.7; }
+.comparison-details .value { font-weight: 600; }
+.profit-positive { color: #2ecc71 !important; font-weight: 700 !important; }
+.profit-negative { color: #e74c3c !important; font-weight: 700 !important; }
+
+.recommendation-badge {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 8px 16px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* 登録済み商品 */
+.keyword-badge {
+  font-size: 13px;
+  background: #e8eaf6;
+  color: #3f51b5;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+.count-badge {
+  font-size: 13px;
+  background: #e94560;
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.products-list { display: flex; flex-direction: column; gap: 10px; }
+.product-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #f8f9fc;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.product-keyword { font-weight: 600; font-size: 15px; }
+.product-meta { font-size: 12px; color: #888; }
+.product-margin { font-size: 13px; font-weight: 700; color: #2ecc71; }
+
+.empty-msg { color: #aaa; font-size: 14px; text-align: center; padding: 20px 0; }
+
+/* ユーティリティ */
+.hidden { display: none !important; }
+
+.loading {
+  text-align: center;
+  padding: 30px;
+  color: #888;
+  font-size: 14px;
+}
+.spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #0f3460;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: #1a1a2e;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  z-index: 1000;
+  animation: slideIn 0.3s ease;
+}
+.toast.success { border-left: 4px solid #2ecc71; }
+.toast.error   { border-left: 4px solid #e74c3c; }
+@keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
