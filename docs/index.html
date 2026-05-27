@@ -40,6 +40,8 @@
     .btn-primary:hover { background: #16213e; }
     .btn-success { background: #e94560; color: #fff; }
     .btn-success:hover { background: #c73652; }
+    .btn-outline { background: #fff; color: #0f3460; border: 2px solid #0f3460; }
+    .btn-outline:hover { background: #f0f4ff; }
     .updated-time { font-size: 12px; color: #888; margin-top: 8px; }
     .trends-container { margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
     .trend-source-title { font-size: 14px; font-weight: 700; padding: 6px 14px; border-radius: 6px; display: inline-block; margin-bottom: 10px; color: #fff; }
@@ -54,8 +56,12 @@
     .trend-meta { font-size: 11px; color: #888; margin-top: 2px; }
     .trend-change { font-size: 12px; font-weight: 600; color: #2ecc71; white-space: nowrap; }
     .trend-category { font-size: 11px; background: #e8eaf6; color: #3f51b5; padding: 2px 8px; border-radius: 12px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+    .price-row { grid-template-columns: 1fr 1fr 1fr; }
+    @media (max-width: 700px) { .form-row, .price-row { grid-template-columns: 1fr; } }
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; font-size: 13px; font-weight: 600; color: #555; margin-bottom: 6px; }
+    .required { color: #e94560; }
     .input { width: 100%; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; transition: border-color 0.2s; font-family: inherit; }
     .input:focus { outline: none; border-color: #0f3460; }
     .table-wrapper { overflow-x: auto; }
@@ -91,8 +97,11 @@
     .products-list { display: flex; flex-direction: column; gap: 10px; }
     .product-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #f8f9fc; border-radius: 8px; flex-wrap: wrap; gap: 8px; }
     .product-keyword { font-weight: 600; font-size: 15px; }
-    .product-meta { font-size: 12px; color: #888; }
+    .product-meta { font-size: 12px; color: #888; margin-top: 2px; }
     .product-margin { font-size: 13px; font-weight: 700; color: #2ecc71; }
+    .product-actions { display: flex; align-items: center; gap: 12px; }
+    .delete-btn { background: none; border: none; color: #ccc; cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 6px; transition: color 0.2s; }
+    .delete-btn:hover { color: #e94560; }
     .empty-msg { color: #aaa; font-size: 14px; text-align: center; padding: 20px 0; }
     .hidden { display: none !important; }
     .toast { position: fixed; bottom: 24px; right: 24px; background: #1a1a2e; color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 1000; animation: slideIn 0.3s ease; }
@@ -110,6 +119,7 @@
   </header>
 
   <main class="container">
+    <!-- トレンドソース選択 -->
     <section class="card">
       <h2 class="card-title"><span class="icon">📊</span> トレンドソース</h2>
       <div class="source-buttons">
@@ -122,19 +132,40 @@
       <div id="trends-container" class="trends-container"></div>
     </section>
 
+    <!-- 商品登録 -->
     <section class="card">
       <h2 class="card-title"><span class="icon">📦</span> 商品登録</h2>
-      <div class="form-group">
-        <label>キーワード</label>
-        <input type="text" id="keyword-input" class="input" placeholder="例: ワイヤレスイヤホン">
+      <div class="form-row">
+        <div class="form-group">
+          <label>キーワード <span class="required">*</span></label>
+          <input type="text" id="keyword-input" class="input" placeholder="例: ワイヤレスイヤホン">
+        </div>
+        <div class="form-group">
+          <label>Amazon URL（任意）</label>
+          <input type="url" id="url-input" class="input" placeholder="https://www.amazon.co.jp/dp/...">
+        </div>
       </div>
-      <div class="form-group">
-        <label>Amazon URL（任意）</label>
-        <input type="url" id="url-input" class="input" placeholder="https://www.amazon.co.jp/dp/...">
+      <div class="form-row price-row">
+        <div class="form-group">
+          <label>仕入れ価格（円）</label>
+          <input type="number" id="cost-input" class="input" placeholder="例: 800" min="0">
+        </div>
+        <div class="form-group">
+          <label>Amazon販売価格（円）</label>
+          <input type="number" id="amazon-price-input" class="input" placeholder="例: 2980" min="0">
+        </div>
+        <div class="form-group">
+          <label>弊社販売価格（円）</label>
+          <input type="number" id="our-price-input" class="input" placeholder="例: 3480" min="0">
+        </div>
       </div>
-      <button class="btn btn-success" id="register-btn">登録・分析</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-success" id="register-btn">登録・分析</button>
+        <button class="btn btn-outline" id="export-btn">CSVエクスポート</button>
+      </div>
     </section>
 
+    <!-- 分析結果 -->
     <div id="analysis-result" class="hidden">
       <section class="card">
         <h2 class="card-title"><span class="icon">🏭</span> 仕入れ先一覧 <span id="analysis-keyword" class="keyword-badge"></span></h2>
@@ -151,6 +182,7 @@
       </section>
     </div>
 
+    <!-- 登録済み商品 -->
     <section class="card">
       <h2 class="card-title"><span class="icon">📋</span> 登録済み商品 <span id="products-count" class="count-badge">0</span></h2>
       <div id="products-list" class="products-list"><p class="empty-msg">登録済みの商品はありません</p></div>
@@ -187,8 +219,12 @@
       { name:"スーパーデリバリー",   type:"国内卸", price:1450, moq:5,   lead:"2〜4日",   url:"https://www.superdelivery.com/p/r/ppg_d/1/?free=",    rating:4.7 },
       { name:"1688.com",            type:"中国卸", price:290,  moq:100, lead:"3〜4週間", url:"https://s.1688.com/selloffer/offerlist.htm?keywords=", rating:3.9 },
     ];
-    let registeredProducts = [];
 
+    const STORAGE_KEY = "butsuhan_products";
+    let registeredProducts = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+    function saveProducts() { localStorage.setItem(STORAGE_KEY, JSON.stringify(registeredProducts)); }
+
+    // ---- トレンド ----
     function getSelectedSources() {
       return Array.from(document.querySelectorAll(".source-btn input:checked")).map(cb => cb.value);
     }
@@ -222,21 +258,30 @@
     document.getElementById("fetch-trends-btn").addEventListener("click", fetchTrends);
     fetchTrends();
 
+    // ---- 登録・分析 ----
     document.getElementById("register-btn").addEventListener("click", () => {
       const keyword = document.getElementById("keyword-input").value.trim();
       const url = document.getElementById("url-input").value.trim();
       if (!keyword && !url) { showToast("キーワードまたはURLを入力してください", "error"); return; }
       const kw = keyword || "商品";
-      const costPrice=890, amazonPrice=2980, ourPrice=3480, amazonFee=0.15, ourFee=0.05;
-      const amazonProfit = Math.round(amazonPrice*(1-amazonFee)-costPrice);
-      const ourProfit    = Math.round(ourPrice*(1-ourFee)-costPrice);
-      const amazonMargin = ((amazonProfit/amazonPrice)*100).toFixed(1);
-      const ourMargin    = ((ourProfit/ourPrice)*100).toFixed(1);
-      const product = { id:registeredProducts.length+1, keyword:kw, url, registeredAt:new Date().toLocaleString("ja-JP"),
-        pc:{ costPrice, amazonPrice, ourPrice, amazonFee:amazonFee*100, ourFee:ourFee*100,
-             amazonProfit, ourProfit, amazonMargin, ourMargin,
-             recommendation: ourProfit>amazonProfit?"弊社販売有利":"Amazon出品有利" } };
+      const costPrice   = parseInt(document.getElementById("cost-input").value)          || 890;
+      const amazonPrice = parseInt(document.getElementById("amazon-price-input").value)  || 2980;
+      const ourPrice    = parseInt(document.getElementById("our-price-input").value)     || 3480;
+      const amazonFee = 0.15, ourFee = 0.05;
+      const amazonProfit = Math.round(amazonPrice * (1 - amazonFee) - costPrice);
+      const ourProfit    = Math.round(ourPrice    * (1 - ourFee)    - costPrice);
+      const amazonMargin = ((amazonProfit / amazonPrice) * 100).toFixed(1);
+      const ourMargin    = ((ourProfit    / ourPrice)    * 100).toFixed(1);
+      const product = {
+        id: Date.now(), keyword: kw, url,
+        registeredAt: new Date().toLocaleString("ja-JP"),
+        pc: { costPrice, amazonPrice, ourPrice, amazonFee: amazonFee*100, ourFee: ourFee*100,
+              amazonProfit, ourProfit, amazonMargin, ourMargin,
+              recommendation: ourProfit > amazonProfit ? "弊社販売有利" : "Amazon出品有利" },
+      };
       registeredProducts.unshift(product);
+      saveProducts();
+
       document.getElementById("analysis-keyword").textContent = kw;
       const tbody = document.getElementById("suppliers-tbody");
       tbody.innerHTML = "";
@@ -246,10 +291,31 @@
         tr.innerHTML = `<td class="supplier-name">${s.name}</td><td><span class="type-badge ${isChina?"type-china":"type-domestic"}">${s.type}</span></td><td class="price-cell">¥${s.price.toLocaleString()}</td><td>${s.moq}個〜</td><td>${s.lead}</td><td><span class="stars">${"★".repeat(Math.round(s.rating))}${"☆".repeat(5-Math.round(s.rating))}</span> ${s.rating}</td><td><a href="${s.url}${encodeURIComponent(kw)}" target="_blank" class="link-btn">検索</a></td>`;
         tbody.appendChild(tr);
       });
+
       const pc = product.pc;
       document.getElementById("comparison-grid").innerHTML = `
-        <div class="comparison-card amazon"><div class="comparison-platform">Amazon 出品</div><div class="comparison-price"><span>¥</span>${pc.amazonPrice.toLocaleString()}</div><div class="comparison-details"><div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div><div><span class="label">手数料: </span><span class="value">${pc.amazonFee}%</span></div><div><span class="label">利益: </span><span class="value ${pc.amazonProfit>=0?"profit-positive":"profit-negative"}">¥${pc.amazonProfit.toLocaleString()}</span></div><div><span class="label">利益率: </span><span class="value">${pc.amazonMargin}%</span></div></div></div>
-        <div class="comparison-card ours"><div class="comparison-platform">弊社 販売</div><div class="comparison-price"><span>¥</span>${pc.ourPrice.toLocaleString()}</div><div class="comparison-details"><div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div><div><span class="label">手数料: </span><span class="value">${pc.ourFee}%</span></div><div><span class="label">利益: </span><span class="value ${pc.ourProfit>=0?"profit-positive":"profit-negative"}">¥${pc.ourProfit.toLocaleString()}</span></div><div><span class="label">利益率: </span><span class="value">${pc.ourMargin}%</span></div></div><div class="recommendation-badge">✓ ${pc.recommendation}</div></div>`;
+        <div class="comparison-card amazon">
+          <div class="comparison-platform">Amazon 出品</div>
+          <div class="comparison-price"><span>¥</span>${pc.amazonPrice.toLocaleString()}</div>
+          <div class="comparison-details">
+            <div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div>
+            <div><span class="label">手数料: </span><span class="value">${pc.amazonFee}%</span></div>
+            <div><span class="label">利益: </span><span class="value ${pc.amazonProfit>=0?"profit-positive":"profit-negative"}">¥${pc.amazonProfit.toLocaleString()}</span></div>
+            <div><span class="label">利益率: </span><span class="value">${pc.amazonMargin}%</span></div>
+          </div>
+        </div>
+        <div class="comparison-card ours">
+          <div class="comparison-platform">弊社 販売</div>
+          <div class="comparison-price"><span>¥</span>${pc.ourPrice.toLocaleString()}</div>
+          <div class="comparison-details">
+            <div><span class="label">仕入れ値: </span><span class="value">¥${pc.costPrice.toLocaleString()}</span></div>
+            <div><span class="label">手数料: </span><span class="value">${pc.ourFee}%</span></div>
+            <div><span class="label">利益: </span><span class="value ${pc.ourProfit>=0?"profit-positive":"profit-negative"}">¥${pc.ourProfit.toLocaleString()}</span></div>
+            <div><span class="label">利益率: </span><span class="value">${pc.ourMargin}%</span></div>
+          </div>
+          <div class="recommendation-badge">✓ ${pc.recommendation}</div>
+        </div>`;
+
       document.getElementById("analysis-result").classList.remove("hidden");
       document.getElementById("analysis-result").scrollIntoView({ behavior:"smooth" });
       renderProducts();
@@ -264,10 +330,48 @@
       registeredProducts.forEach(p => {
         const el = document.createElement("div");
         el.className = "product-item";
-        el.innerHTML = `<div><div class="product-keyword">${p.keyword}</div><div class="product-meta">登録: ${p.registeredAt}${p.url?" | "+p.url.slice(0,40)+"...":""}</div></div><div class="product-margin">利益率 ${p.pc.ourMargin}%</div>`;
+        el.innerHTML = `
+          <div style="flex:1">
+            <div class="product-keyword">${p.keyword}</div>
+            <div class="product-meta">登録: ${p.registeredAt} | 仕入れ¥${p.pc.costPrice.toLocaleString()} / Amazon¥${p.pc.amazonPrice.toLocaleString()} / 弊社¥${p.pc.ourPrice.toLocaleString()}${p.url?" | "+p.url.slice(0,35)+"...":""}</div>
+          </div>
+          <div class="product-actions">
+            <div class="product-margin">利益率 ${p.pc.ourMargin}%</div>
+            <button class="delete-btn" data-id="${p.id}" title="削除">✕</button>
+          </div>`;
         list.appendChild(el);
       });
+      list.querySelectorAll(".delete-btn").forEach(btn => {
+        btn.addEventListener("click", e => {
+          const id = parseInt(e.currentTarget.dataset.id);
+          registeredProducts = registeredProducts.filter(p => p.id !== id);
+          saveProducts();
+          renderProducts();
+          showToast("削除しました");
+        });
+      });
     }
+
+    // ---- CSV エクスポート ----
+    document.getElementById("export-btn").addEventListener("click", () => {
+      if (!registeredProducts.length) { showToast("登録済み商品がありません", "error"); return; }
+      const header = ["キーワード","仕入れ価格","Amazon販売価格","弊社販売価格","Amazon利益","弊社利益","Amazon利益率%","弊社利益率%","推薦","登録日時","URL"];
+      const rows = registeredProducts.map(p => [
+        p.keyword, p.pc.costPrice, p.pc.amazonPrice, p.pc.ourPrice,
+        p.pc.amazonProfit, p.pc.ourProfit, p.pc.amazonMargin, p.pc.ourMargin,
+        p.pc.recommendation, p.registeredAt, p.url || ""
+      ]);
+      const csv = [header, ...rows].map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+      const blob = new Blob(["﻿"+csv], { type:"text/csv;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `物販リサーチ_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      showToast("CSVをダウンロードしました");
+    });
+
+    renderProducts();
+
     function showToast(msg, type="success") {
       document.querySelector(".toast")?.remove();
       const t = document.createElement("div");
