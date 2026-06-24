@@ -18,7 +18,7 @@
       --danger:  #ff5f5f;
       --warn:    #f0a500;
       --r:       10px;
-      --font: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
+      --font:    'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
     }
 
     body {
@@ -33,7 +33,6 @@
 
     .wrap { width: 100%; max-width: 680px; }
 
-    /* ヘッダー */
     header { text-align: center; margin-bottom: 32px; }
     header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: .04em; }
     header h1 em { color: var(--accent); font-style: normal; }
@@ -56,8 +55,18 @@
     .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 6px; }
 
     /* カード */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px; margin-bottom: 14px; }
-    .card-ttl { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      margin-bottom: 14px;
+    }
+    .card-ttl {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 14px;
+    }
 
     /* フォーム */
     .field { margin-bottom: 14px; }
@@ -93,7 +102,7 @@
     .btn-block          { width: 100%; padding: 13px; font-size: .95rem; margin-top: 4px; }
     .btn-sm             { padding: 7px 12px; font-size: .8rem; }
 
-    /* AI使用可否 */
+    /* AI使用可否ピル */
     .pills { display: flex; gap: 8px; }
     .pill {
       flex: 1; text-align: center; padding: 9px 0; border-radius: 7px;
@@ -112,24 +121,37 @@
       cursor: pointer; position: relative; transition: border-color .15s;
     }
     .dropzone:hover { border-color: var(--accent); }
-    .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .dropzone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
     .dropzone .di { font-size: 1.8rem; margin-bottom: 6px; }
     .dropzone .dh { font-size: .82rem; }
-    #imgPreview { display: none; width: 100%; max-height: 200px; object-fit: contain; border-radius: 7px; margin-top: 12px; }
+    #imgPreview {
+      display: none; width: 100%; max-height: 200px;
+      object-fit: contain; border-radius: 7px; margin-top: 12px;
+    }
 
     /* ローダー */
     .loader { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: .84rem; padding: 10px 0; }
     .loader.on { display: flex; }
-    .spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .65s linear infinite; flex-shrink: 0; }
+    .spin {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border); border-top-color: var(--accent);
+      border-radius: 50%; animation: sp .65s linear infinite; flex-shrink: 0;
+    }
     @keyframes sp { to { transform: rotate(360deg); } }
 
     /* アラート */
     .alert { display: none; padding: 12px 14px; border-radius: 7px; font-size: .84rem; line-height: 1.55; }
     .alert.on { display: block; }
-    .alert-err   { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger);  margin-top: 10px; }
-    .alert-warn  { background: rgba(240,165,0,.08); border: 1px solid var(--warn);    color: var(--warn);    margin-top: 10px; }
-    .alert-ok    { background: rgba(62,207,142,.1); border: 1px solid var(--success); color: var(--success); margin-top: 10px; }
-    .alert-block { background: rgba(255,95,95,.07); border: 1px solid var(--danger);  color: var(--danger);  text-align: center; padding: 22px; border-radius: var(--r); margin-bottom: 14px; }
+    .alert-err  { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger);  margin-top: 10px; }
+    .alert-warn { background: rgba(240,165,0,.08); border: 1px solid var(--warn);    color: var(--warn);    margin-top: 10px; }
+    .alert-ok   { background: rgba(62,207,142,.1); border: 1px solid var(--success); color: var(--success); margin-top: 10px; }
+    .alert-block {
+      background: rgba(255,95,95,.07); border: 1px solid var(--danger);
+      color: var(--danger); text-align: center; padding: 22px;
+      border-radius: var(--r); margin-bottom: 14px;
+    }
 
     /* 提案カード */
     .p-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
@@ -153,53 +175,32 @@
     .p-evidence a { color: var(--accent); text-decoration: none; word-break: break-all; }
     .p-evidence a:hover { text-decoration: underline; }
 
-    /* 最終提案文エリア */
+    /* 最終提案文 */
     #finalText { width: 100%; min-height: 260px; font-size: .88rem; line-height: 1.8; }
     .copy-ok { font-size: .8rem; color: var(--success); margin-top: 7px; min-height: 18px; }
 
     /* 推敲パネル */
     .refine-panel {
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-      margin-top: 14px;
+      border: 1px solid var(--border); border-radius: var(--r);
+      padding: 16px; margin-top: 14px;
       background: rgba(91,127,255,.04);
     }
     .refine-panel .rp-title {
-      font-size: .75rem;
-      font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 12px;
+      font-size: .75rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 12px;
     }
-    .refine-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-bottom: 12px;
-    }
+    .refine-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 12px; }
     .r-chip {
-      padding: 6px 12px;
-      border-radius: 20px;
-      border: 1px solid var(--border);
-      font-size: .8rem;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all .15s;
-      user-select: none;
+      padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border);
+      font-size: .8rem; cursor: pointer; color: var(--muted);
+      transition: all .15s; user-select: none;
     }
     .r-chip:hover { border-color: var(--accent); color: var(--text); }
     .r-chip.on { background: rgba(91,127,255,.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
-
     .refine-custom { margin-bottom: 10px; }
-    .refine-custom textarea {
-      font-size: .84rem;
-      min-height: 60px;
-      padding: 8px 10px;
-    }
+    .refine-custom textarea { font-size: .84rem; min-height: 60px; padding: 8px 10px; }
 
-    /* 共通パーツ */
+    /* 共通 */
     .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
     .back-btn {
       display: inline-flex; align-items: center; gap: 4px;
@@ -238,8 +239,8 @@
       <div class="field">
         <label for="keyInput">APIキー</label>
         <div class="row">
-          <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off"
-            onkeydown="if(event.key==='Enter')step1Next()">
+          <input type="password" id="keyInput" placeholder="sk-ant-api03-..."
+            autocomplete="off" onkeydown="if(event.key==='Enter')step1Next()">
           <button class="btn btn-outline-danger btn-sm" onclick="clearKey()">削除</button>
         </div>
         <p class="note warn">⚠ キーはこのタブを閉じると消えます（sessionStorage に一時保存）</p>
@@ -247,7 +248,9 @@
       <div class="alert alert-err" id="keyErr"></div>
       <div class="alert alert-ok"  id="keyOk">✓ 接続確認 OK</div>
     </div>
-    <button class="btn btn-primary btn-block" id="step1Btn" onclick="step1Next()">接続確認して次へ →</button>
+    <button class="btn btn-primary btn-block" id="step1Btn" onclick="step1Next()">
+      接続確認して次へ →
+    </button>
   </div>
 
   <!-- ===== STEP 2: 案件情報 ===== -->
@@ -301,7 +304,7 @@
   <div class="page" id="page3">
     <button class="back-btn" onclick="goTo(2)">← 案件情報に戻る</button>
 
-    <!-- AI使用不可 -->
+    <!-- AI使用不可ブロック -->
     <div class="alert-block" id="ngBlock" style="display:none;">
       ✕ この案件は生成AIの使用が禁止されています。<br>
       自動生成はできません。案件情報を変更してください。
@@ -321,7 +324,7 @@
       </div>
       <div class="actions" id="angleActs" style="display:none;">
         <button class="btn btn-primary" id="composeBtn" onclick="composeFinal()">選択した提案で文章を生成 →</button>
-        <button class="btn btn-ghost"   id="cancelBtn"  onclick="doCancel()" style="display:none;">中断</button>
+        <button class="btn btn-ghost" id="cancelBtn" onclick="doCancel()" style="display:none;">中断</button>
       </div>
     </div>
 
@@ -353,14 +356,14 @@
       </div>
 
       <div class="actions" id="finalActs">
-        <button class="btn btn-success"       onclick="doCopy()">📋 コピーする</button>
-        <button class="btn btn-warn"          id="toggleRefineBtn" onclick="toggleRefinePanel()">✏️ 推敲する</button>
-        <button class="btn btn-ghost"         onclick="backToAngles()">← 提案を選び直す</button>
+        <button class="btn btn-success"   onclick="doCopy()">📋 コピーする</button>
+        <button class="btn btn-warn"      id="toggleRefineBtn" onclick="toggleRefinePanel()">✏️ 推敲する</button>
+        <button class="btn btn-ghost"     onclick="backToAngles()">← 提案を選び直す</button>
       </div>
     </div>
   </div>
 
-</div><!-- /.wrap -->
+</div>
 <script>
 // ─────────────────────────────────────────
 //  状態
@@ -383,22 +386,20 @@ window.addEventListener('DOMContentLoaded', () => {
   if (k) { document.getElementById('keyInput').value = k; S.key = k; }
   setAi('unknown');
 
-  // 推敲チップのトグル
   document.getElementById('refineChips').addEventListener('click', e => {
     const chip = e.target.closest('.r-chip');
-    if (!chip) return;
-    chip.classList.toggle('on');
+    if (chip) chip.classList.toggle('on');
   });
 });
 
 // ─────────────────────────────────────────
-//  ページ遷移・ステッパー
+//  ページ遷移
 // ─────────────────────────────────────────
 function goTo(n) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page' + n).classList.add('active');
   window.scrollTo(0, 0);
-  [1,2,3].forEach(i => {
+  [1, 2, 3].forEach(i => {
     const el = document.getElementById('sd' + i);
     el.classList.toggle('done',   i < n);
     el.classList.toggle('active', i === n);
@@ -412,7 +413,7 @@ async function step1Next() {
   const key = document.getElementById('keyInput').value.trim();
   hide('keyErr'); hide('keyOk');
 
-  if (!key) return showErr('keyErr', 'APIキーを入力してください');
+  if (!key)                       return showErr('keyErr', 'APIキーを入力してください');
   if (!key.startsWith('sk-ant-')) return showErr('keyErr', '形式が正しくありません（sk-ant- で始まる文字列）');
 
   S.key = key;
@@ -467,7 +468,7 @@ async function step2Next() {
   if (hit) {
     document.getElementById('genLoader').classList.remove('on');
     renderProposals();
-    show('angleActs');
+    document.getElementById('angleActs').style.display = 'flex';
     return;
   }
 
@@ -491,7 +492,7 @@ function resetStep3() {
 }
 
 // ─────────────────────────────────────────
-//  AI使用可否
+//  AI使用可否ピル
 // ─────────────────────────────────────────
 function setAi(v) {
   S.ai = v;
@@ -586,7 +587,10 @@ async function genProposals() {
     if (isSearchErr(e)) {
       try {
         document.getElementById('genMsg').textContent = '提案を生成中...';
-        const data2 = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 3000 }, S.ctl.signal);
+        const data2 = await callAPI(
+          { messages: [{ role: 'user', content: prompt }], max_tokens: 4000 },
+          S.ctl.signal
+        );
         const j2 = safeJson(getText(data2));
         S.proposals = j2.proposals ?? [];
         showWarn('p3Warn', '⚠ Web検索ツールが使えないため、AIの知識で提案を生成しました。');
@@ -612,18 +616,22 @@ function renderProposals() {
     return;
   }
   S.proposals.forEach(p => {
-    const card = make('div', 'p-card' + (S.selected.has(p.id) ? ' sel' : ''));
+    const card  = make('div', 'p-card' + (S.selected.has(p.id) ? ' sel' : ''));
     card.dataset.id = p.id;
-    const chk   = make('div', 'p-chk'); chk.textContent = '✓';
+
+    const chk   = make('div', 'p-chk');  chk.textContent   = '✓';
     const angle = make('div', 'p-angle'); angle.textContent = p.angle;
-    const res   = make('div', 'p-result'); res.textContent = '📈 ' + p.result;
+    const res   = make('div', 'p-result'); res.textContent  = '📈 ' + p.result;
     const evid  = make('div', 'p-evidence'); evid.textContent = '🔗 ' + p.evidence;
-    const url   = safeUrl(p.evidence_url);
+
+    const url = safeUrl(p.evidence_url);
     if (url) {
-      const a = make('a'); a.href = url; a.textContent = url;
+      const a = make('a');
+      a.href = url; a.textContent = url;
       a.target = '_blank'; a.rel = 'noopener noreferrer';
       evid.append(' ', a);
     }
+
     card.append(chk, angle, res, evid);
     card.onclick = () => {
       if (S.selected.has(p.id)) { S.selected.delete(p.id); card.classList.remove('sel'); }
@@ -677,9 +685,11 @@ ${angles}
   document.getElementById('cancelBtn').style.display = 'inline-flex';
 
   try {
-    const data = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 1600 }, S.ctl.signal);
+    const data = await callAPI(
+      { messages: [{ role: 'user', content: prompt }], max_tokens: 1600 },
+      S.ctl.signal
+    );
     document.getElementById('finalText').value = getText(data);
-    document.getElementById('refinePanel').style.display = 'none';
   } catch (e) {
     if (e.name !== 'AbortError') {
       document.getElementById('finalText').value = '生成に失敗しました: ' + friendlyErr(e);
@@ -696,28 +706,20 @@ ${angles}
 // ─────────────────────────────────────────
 function toggleRefinePanel() {
   const panel = document.getElementById('refinePanel');
-  const isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (!isOpen) {
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+  const opening = panel.style.display === 'none';
+  panel.style.display = opening ? 'block' : 'none';
+  if (opening) panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 async function doRefine() {
   const current = document.getElementById('finalText').value.trim();
   if (!current) return alert('まず提案文を生成してください');
 
-  // 選択されたチップの指示を収集
-  const chips = [...document.querySelectorAll('#refineChips .r-chip.on')]
-    .map(c => c.dataset.val);
+  const chips = [...document.querySelectorAll('#refineChips .r-chip.on')].map(c => c.dataset.val);
   const custom = document.getElementById('refineCustom').value.trim();
-
-  if (!chips.length && !custom) {
-    return alert('修正方向を選ぶか、自由記述欄に指示を入力してください');
-  }
+  if (!chips.length && !custom) return alert('修正方向を選ぶか、自由記述欄に指示を入力してください');
 
   const instructions = [...chips, ...(custom ? [custom] : [])].join('\n');
-
   const btn = document.getElementById('refineBtn');
   btn.disabled = true;
   document.getElementById('finalLoader').classList.add('on');
@@ -741,9 +743,11 @@ ${instructions}
   S.ctl = new AbortController();
 
   try {
-    const data = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 1600 }, S.ctl.signal);
+    const data = await callAPI(
+      { messages: [{ role: 'user', content: prompt }], max_tokens: 1600 },
+      S.ctl.signal
+    );
     document.getElementById('finalText').value = getText(data);
-    // チップのON状態をリセット
     document.querySelectorAll('#refineChips .r-chip.on').forEach(c => c.classList.remove('on'));
     document.getElementById('refineCustom').value = '';
   } catch (e) {
@@ -759,9 +763,9 @@ ${instructions}
 // ─────────────────────────────────────────
 async function doCopy() {
   const txt = document.getElementById('finalText').value;
-  const ok  = document.getElementById('copyOk');
   try { await navigator.clipboard.writeText(txt); }
   catch { document.getElementById('finalText').select(); document.execCommand('copy'); }
+  const ok = document.getElementById('copyOk');
   ok.textContent = 'コピーしました！';
   setTimeout(() => { ok.textContent = ''; }, 2500);
 }
@@ -804,7 +808,8 @@ async function callWithSearch(prompt, signal) {
     const results = data.content
       .filter(b => b.type === 'tool_use')
       .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' }));
-    msgs = [...msgs,
+    msgs = [
+      ...msgs,
       { role: 'assistant', content: data.content },
       { role: 'user',      content: results },
     ];
@@ -821,7 +826,8 @@ function getText(data) {
 
 function safeJson(raw) {
   const s = raw.replace(/```(?:json)?/gi, '').trim();
-  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  const a = s.indexOf('{');
+  const b = s.lastIndexOf('}');
   if (a === -1 || b <= a) throw new Error('JSONが見つかりません: ' + s.slice(0, 80));
   return JSON.parse(s.slice(a, b + 1));
 }
@@ -834,10 +840,10 @@ function safeUrl(raw) {
 
 function friendlyErr(e) {
   const m = e.message || '';
-  if (m.includes('401') || m.includes('auth'))       return 'APIキーが無効です。正しいキーを確認してください。';
-  if (m.includes('403'))                              return 'このAPIキーでは操作が許可されていません。';
-  if (m.includes('429') || m.includes('rate'))       return 'API使用量の上限に達しました。しばらく待ってから再試行してください。';
-  if (m.includes('500') || m.includes('overloaded')) return 'サーバーが混雑しています。しばらく待ってから再試行してください。';
+  if (m.includes('401') || m.includes('auth'))            return 'APIキーが無効です。正しいキーを確認してください。';
+  if (m.includes('403'))                                  return 'このAPIキーでは操作が許可されていません。';
+  if (m.includes('429') || m.includes('rate'))            return 'API使用量の上限に達しました。しばらく待ってから再試行してください。';
+  if (m.includes('500') || m.includes('overloaded'))      return 'サーバーが混雑しています。しばらく待ってから再試行してください。';
   if (m.includes('Failed to fetch') || m.includes('NetworkError')) return 'ネットワーク接続を確認してください。';
   return m;
 }
@@ -847,11 +853,11 @@ function isSearchErr(e) {
   return m.includes('tool') || m.includes('search') || m.includes('400') || m.includes('not_found');
 }
 
-function show(id)            { document.getElementById(id).classList.add('on'); }
-function hide(id)            { document.getElementById(id).classList.remove('on'); }
-function showErr(id, msg)    { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
-function showWarn(id, msg)   { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
-function make(tag, cls)      { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
+function show(id)          { document.getElementById(id).classList.add('on'); }
+function hide(id)          { document.getElementById(id).classList.remove('on'); }
+function showErr(id, msg)  { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
+function showWarn(id, msg) { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
+function make(tag, cls)    { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
 </script>
 </body>
 </html>
