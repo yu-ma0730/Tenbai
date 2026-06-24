@@ -8,18 +8,17 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3350;
-      --accent: #5b7fff;
-      --accent-dim: #3a4ea8;
-      --text: #e8eaf0;
-      --text-muted: #7b82a0;
-      --success: #3ecf8e;
-      --danger: #ff5f5f;
-      --warn: #f0a500;
-      --radius: 10px;
+      --bg:           #0f1117;
+      --surface:      #1a1d27;
+      --border:       #2e3350;
+      --accent:       #5b7fff;
+      --accent-hover: #3a4ea8;
+      --text:         #e8eaf0;
+      --muted:        #7b82a0;
+      --success:      #3ecf8e;
+      --danger:       #ff5f5f;
+      --warn:         #f0a500;
+      --radius:       10px;
       --font: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
     }
 
@@ -29,42 +28,105 @@
       font-family: var(--font);
       min-height: 100vh;
       display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 24px 16px 60px;
+      justify-content: center;
+      padding: 32px 16px 80px;
     }
 
-    .app { width: 100%; max-width: 680px; }
+    .app {
+      width: 100%;
+      max-width: 660px;
+    }
 
-    .logo { text-align: center; margin-bottom: 32px; }
-    .logo h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: .04em; color: var(--text); }
-    .logo span { color: var(--accent); }
+    /* ── ヘッダー ── */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+    }
+    .header h1 span { color: var(--accent); }
+    .header p {
+      margin-top: 6px;
+      font-size: .8rem;
+      color: var(--muted);
+    }
 
-    .page { display: none; }
-    .page.active { display: block; }
+    /* ── ステッパー ── */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 28px;
+    }
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .step.active .step-num  { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .step.done   .step-num  { border-color: var(--success); background: var(--success); color: #fff; }
+    .step-label {
+      font-size: .78rem;
+      color: var(--muted);
+      transition: color .2s;
+    }
+    .step.active .step-label { color: var(--text); }
+    .step-line {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+      margin: 0 8px;
+    }
 
+    /* ── カード ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 24px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
-
-    .section-label {
-      font-size: .72rem;
+    .card-title {
+      font-size: .7rem;
       font-weight: 700;
       letter-spacing: .1em;
       text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+      color: var(--muted);
+      margin-bottom: 16px;
     }
 
-    label { font-size: .85rem; color: var(--text-muted); display: block; margin-bottom: 6px; }
+    /* ── フォーム部品 ── */
+    .field { margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
 
     input[type="text"],
     input[type="password"],
-    textarea {
+    textarea,
+    select {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
@@ -77,17 +139,22 @@
       transition: border-color .15s;
       resize: vertical;
     }
-    input:focus, textarea:focus { border-color: var(--accent); }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
 
-    .row { display: flex; gap: 10px; align-items: flex-start; }
-    .row input { flex: 1; }
+    .input-row {
+      display: flex;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .input-row input { flex: 1; }
 
+    /* ── ボタン ── */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 6px;
-      padding: 10px 18px;
+      padding: 11px 20px;
       border: none;
       border-radius: 7px;
       font-family: var(--font);
@@ -95,31 +162,20 @@
       font-weight: 600;
       cursor: pointer;
       transition: opacity .15s, transform .1s;
+      line-height: 1;
     }
-    .btn:hover { opacity: .85; }
-    .btn:active { transform: scale(.97); }
-    .btn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .btn:hover:not(:disabled) { opacity: .82; }
+    .btn:active:not(:disabled) { transform: scale(.97); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
     .btn-primary { background: var(--accent); color: #fff; }
-    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-danger  { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
     .btn-success { background: var(--success); color: #0f1117; }
-    .btn-full    { width: 100%; padding: 14px; font-size: 1rem; }
-    .btn-sm      { padding: 7px 12px; font-size: .8rem; }
+    .btn-block   { width: 100%; padding: 14px; font-size: .95rem; }
+    .btn-sm      { padding: 8px 13px; font-size: .8rem; }
 
-    #apiKeyDeleteBtn {
-      flex-shrink: 0;
-      background: transparent;
-      border: 1px solid var(--danger);
-      color: var(--danger);
-      padding: 10px 14px;
-      border-radius: 7px;
-      font-size: .8rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity .15s;
-      white-space: nowrap;
-    }
-    #apiKeyDeleteBtn:hover { opacity: .7; }
-
+    /* ── AI使用可否ピル ── */
     .pill-group { display: flex; gap: 8px; }
     .pill {
       flex: 1;
@@ -127,758 +183,758 @@
       padding: 9px 0;
       border-radius: 7px;
       border: 1px solid var(--border);
-      font-size: .85rem;
+      font-size: .84rem;
       font-weight: 600;
       cursor: pointer;
-      color: var(--text-muted);
+      color: var(--muted);
       transition: all .15s;
       user-select: none;
     }
     .pill:hover { border-color: var(--accent); color: var(--text); }
-    .pill.selected-ok      { background: rgba(62,207,142,.15); border-color: var(--success); color: var(--success); }
-    .pill.selected-ng      { background: rgba(255,95,95,.15);  border-color: var(--danger);  color: var(--danger); }
-    .pill.selected-unknown { background: rgba(91,127,255,.15); border-color: var(--accent);  color: var(--accent); }
+    .pill[data-selected="ok"]      { background: rgba(62,207,142,.15); border-color: var(--success); color: var(--success); }
+    .pill[data-selected="ng"]      { background: rgba(255,95,95,.15);  border-color: var(--danger);  color: var(--danger); }
+    .pill[data-selected="unknown"] { background: rgba(91,127,255,.15); border-color: var(--accent);  color: var(--accent); }
 
-    .upload-zone {
+    /* ── 画像アップロード ── */
+    .upload-area {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
       padding: 28px;
       text-align: center;
-      color: var(--text-muted);
+      color: var(--muted);
       cursor: pointer;
-      transition: border-color .15s;
       position: relative;
+      transition: border-color .15s;
     }
-    .upload-zone:hover { border-color: var(--accent); }
-    .upload-zone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    .upload-area:hover { border-color: var(--accent); }
+    .upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
     }
-    .upload-zone .upload-icon { font-size: 2rem; margin-bottom: 8px; }
-    .upload-zone .upload-text { font-size: .85rem; }
+    .upload-area .icon { font-size: 2rem; margin-bottom: 6px; }
+    .upload-area .hint { font-size: .82rem; }
+    #preview {
+      display: none;
+      width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      border-radius: 7px;
+      margin-top: 12px;
+    }
 
-    #uploadedPreview {
-      width: 100%; border-radius: 7px; margin-top: 12px;
-      display: none; max-height: 200px; object-fit: contain;
-    }
-    .extract-row { margin-top: 12px; display: none; }
-
-    .loading {
+    /* ── スピナー / ローダー ── */
+    .loader {
       display: none;
       align-items: center;
       gap: 10px;
-      color: var(--text-muted);
-      font-size: .85rem;
-      padding: 12px 0;
+      color: var(--muted);
+      font-size: .84rem;
+      padding: 10px 0;
     }
-    .loading.visible { display: flex; }
+    .loader.show { display: flex; }
     .spinner {
       width: 18px; height: 18px;
       border: 2px solid var(--border);
       border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin .7s linear infinite;
+      animation: spin .65s linear infinite;
       flex-shrink: 0;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .error-box {
-      background: rgba(255,95,95,.1);
-      border: 1px solid var(--danger);
-      border-radius: 7px;
-      padding: 12px;
-      font-size: .85rem;
-      color: var(--danger);
-      margin-top: 12px;
+    /* ── アラート ── */
+    .alert {
       display: none;
+      padding: 12px 14px;
+      border-radius: 7px;
+      font-size: .84rem;
+      margin-top: 12px;
+      line-height: 1.5;
     }
-    .error-box.visible { display: block; }
+    .alert.show { display: block; }
+    .alert-danger  { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger); }
+    .alert-warn    { background: rgba(240,165,0,.1);   border: 1px solid var(--warn);    color: var(--warn); }
+    .alert-block   { background: rgba(255,95,95,.07); border: 1px solid var(--danger);  color: var(--danger); text-align: center; padding: 20px; }
 
-    .proposal-list { display: flex; flex-direction: column; gap: 14px; }
+    /* ── 提案カード ── */
+    .proposals { display: flex; flex-direction: column; gap: 12px; }
 
-    .proposal-card {
+    .p-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 18px;
+      padding: 16px 48px 16px 16px;
       cursor: pointer;
-      transition: border-color .15s, background .15s;
       position: relative;
+      transition: border-color .15s, background .15s;
     }
-    .proposal-card:hover { border-color: var(--accent-dim); }
-    .proposal-card.selected { border-color: var(--accent); background: rgba(91,127,255,.06); }
-    .proposal-card .check {
-      position: absolute; top: 14px; right: 14px;
+    .p-card:hover { border-color: var(--accent-hover); }
+    .p-card.selected { border-color: var(--accent); background: rgba(91,127,255,.06); }
+
+    .p-check {
+      position: absolute;
+      top: 14px; right: 14px;
       width: 22px; height: 22px;
       border: 2px solid var(--border);
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: .75rem;
-      transition: all .15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .72rem;
       color: transparent;
+      transition: all .15s;
     }
-    .proposal-card.selected .check { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .proposal-card .p-title { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: 8px; padding-right: 32px; }
-    .proposal-card .p-result { font-size: .83rem; color: var(--success); margin-bottom: 6px; }
-    .proposal-card .p-evidence { font-size: .78rem; color: var(--text-muted); }
-    .proposal-card .p-evidence a { color: var(--accent); text-decoration: none; word-break: break-all; }
-    .proposal-card .p-evidence a:hover { text-decoration: underline; }
+    .p-card.selected .p-check {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
 
-    #finalText { width: 100%; min-height: 260px; font-size: .88rem; line-height: 1.7; }
+    .p-angle   { font-size: .93rem; font-weight: 700; margin-bottom: 7px; }
+    .p-result  { font-size: .8rem; color: var(--success); margin-bottom: 5px; }
+    .p-evidence{ font-size: .77rem; color: var(--muted); }
+    .p-evidence a {
+      color: var(--accent);
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .p-evidence a:hover { text-decoration: underline; }
 
-    .back-btn {
-      display: flex; align-items: center; gap: 6px;
-      background: none; border: none;
-      color: var(--text-muted); font-size: .83rem;
-      cursor: pointer; padding: 4px 0; margin-bottom: 20px;
+    /* ── 最終提案文 ── */
+    #finalText {
+      width: 100%;
+      min-height: 240px;
+      font-size: .88rem;
+      line-height: 1.75;
+    }
+    .copy-msg {
+      font-size: .8rem;
+      color: var(--success);
+      margin-top: 8px;
+      min-height: 18px;
+    }
+
+    /* ── アクション行 ── */
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    /* ── 戻るリンク ── */
+    .back {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: .82rem;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 20px;
       transition: color .15s;
     }
-    .back-btn:hover { color: var(--text); }
+    .back:hover { color: var(--text); }
 
-    .block-notice {
-      background: rgba(255,95,95,.08);
-      border: 1px solid var(--danger);
-      border-radius: var(--radius);
-      padding: 20px;
-      text-align: center;
-      font-size: .88rem;
-      color: var(--danger);
-      line-height: 1.6;
-      display: none;
+    /* ── メモ ── */
+    .note {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-top: 7px;
+      line-height: 1.5;
     }
-    .block-notice.visible { display: block; }
+    .note.warn { color: var(--warn); }
 
-    #cancelBtn { display: none; }
-    #cancelBtn.visible { display: inline-flex; }
-
-    .step-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .copy-feedback { font-size: .8rem; color: var(--success); margin-top: 8px; min-height: 20px; }
-
-    .session-notice { font-size: .75rem; color: var(--warn); margin-top: 8px; }
+    /* ── ページ切り替え ── */
+    .page { display: none; }
+    .page.active { display: block; }
   </style>
 </head>
 <body>
 <div class="app">
 
-  <div class="logo">
+  <div class="header">
     <h1>提案文<span>ジェネレーター</span></h1>
+    <p>CrowdWorks の案件情報を入力して、受注確率の高い提案文を自動生成します</p>
   </div>
 
-  <!-- ======== PAGE 1: APIキー ======== -->
+  <!-- ステッパー -->
+  <div class="stepper" id="stepper">
+    <div class="step active" id="step-dot-1">
+      <div class="step-num">1</div>
+      <div class="step-label">APIキー</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-dot-2">
+      <div class="step-num">2</div>
+      <div class="step-label">案件情報</div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step" id="step-dot-3">
+      <div class="step-num">3</div>
+      <div class="step-label">提案生成</div>
+    </div>
+  </div>
+
+  <!-- ======== STEP 1: APIキー ======== -->
   <div class="page active" id="page1">
     <div class="card">
-      <div class="section-label">Step 1 — APIキー</div>
-      <label for="apiKeyInput">Anthropic APIキー</label>
-      <div class="row">
-        <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
-        <button id="apiKeyDeleteBtn" onclick="deleteApiKey()">削除</button>
+      <div class="card-title">Anthropic APIキー</div>
+      <div class="field">
+        <label for="apiKeyInput">APIキー</label>
+        <div class="input-row">
+          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
+          <button class="btn btn-danger btn-sm" onclick="clearKey()">削除</button>
+        </div>
+        <p class="note warn">⚠ キーはこのタブを閉じると消えます（sessionStorage に一時保存）</p>
       </div>
-      <p class="session-notice">
-        ⚠️ キーはこのタブを閉じるまでの間だけブラウザのメモリに保持されます（sessionStorage）。
-      </p>
     </div>
-    <button class="btn btn-primary btn-full" onclick="goToPage2()">次へ →</button>
+    <button class="btn btn-primary btn-block" onclick="step1Next()">次へ →</button>
   </div>
 
-  <!-- ======== PAGE 2: 案件情報 ======== -->
+  <!-- ======== STEP 2: 案件情報 ======== -->
   <div class="page" id="page2">
-    <button class="back-btn" onclick="goTo(1)">← 戻る</button>
+    <button class="back" onclick="goTo(1)">← 戻る</button>
 
     <div class="card">
-      <div class="section-label">Step 2 — 案件情報</div>
-
-      <label style="margin-bottom:8px;">スクリーンショット（任意）</label>
-      <div class="upload-zone" id="uploadZone">
-        <input type="file" id="imageInput" accept="image/*" onchange="onImageSelected(event)">
-        <div class="upload-icon">📷</div>
-        <div class="upload-text">クリックまたはドラッグ&ドロップ</div>
+      <div class="card-title">スクリーンショット（任意）</div>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="imageFile" accept="image/*" onchange="onFileChange(event)">
+        <div class="icon">📷</div>
+        <div class="hint">クリックまたはドラッグ&ドロップで画像を追加</div>
       </div>
-      <img id="uploadedPreview" alt="プレビュー">
-      <div class="extract-row" id="extractRow">
+      <img id="preview" alt="プレビュー">
+      <div style="margin-top:10px; display:none;" id="extractWrap">
         <button class="btn btn-ghost btn-sm" onclick="extractFromImage()">🔍 画像から情報を読み取る</button>
       </div>
-      <div class="loading" id="extractLoading">
+      <div class="loader" id="extractLoader">
         <div class="spinner"></div>
         <span>画像から情報を抽出中...</span>
       </div>
     </div>
 
     <div class="card">
-      <label for="jobTitle">案件タイトル</label>
-      <input type="text" id="jobTitle" placeholder="例）LP制作（WordPress）" style="margin-bottom:14px;">
-
-      <label for="jobContent">業務内容</label>
-      <textarea id="jobContent" rows="5" placeholder="業務内容・依頼内容を貼り付けてください"></textarea>
-    </div>
-
-    <div class="card">
-      <label for="jobReward">報酬</label>
-      <input type="text" id="jobReward" placeholder="例）3,000円 〜 5,000円" style="margin-bottom:14px;">
-
-      <label style="margin-bottom:8px;">生成AIの使用</label>
-      <div class="pill-group">
-        <div class="pill selected-unknown" id="pill-unknown" onclick="selectAiUsage('unknown')">？ 不明</div>
-        <div class="pill" id="pill-ok"     onclick="selectAiUsage('ok')">〇 使用可</div>
-        <div class="pill" id="pill-ng"     onclick="selectAiUsage('ng')">✕ 使用不可</div>
+      <div class="card-title">案件情報</div>
+      <div class="field">
+        <label for="jobTitle">案件タイトル</label>
+        <input type="text" id="jobTitle" placeholder="例）LP制作（WordPress）">
+      </div>
+      <div class="field">
+        <label for="jobContent">業務内容</label>
+        <textarea id="jobContent" rows="6" placeholder="依頼内容・要件をそのまま貼り付けてください"></textarea>
+      </div>
+      <div class="field">
+        <label for="jobReward">報酬</label>
+        <input type="text" id="jobReward" placeholder="例）3,000円〜5,000円">
+      </div>
+      <div class="field">
+        <label>生成AIの使用可否</label>
+        <div class="pill-group">
+          <div class="pill" id="pill-unknown" onclick="setAiUsage('unknown')">？ 不明</div>
+          <div class="pill" id="pill-ok"      onclick="setAiUsage('ok')">〇 使用可</div>
+          <div class="pill" id="pill-ng"      onclick="setAiUsage('ng')">✕ 使用不可</div>
+        </div>
       </div>
     </div>
 
-    <div class="error-box" id="page2Error"></div>
-
-    <button class="btn btn-primary btn-full" onclick="goToPage3()">提案を生成する →</button>
+    <div class="alert alert-danger" id="page2Err"></div>
+    <button class="btn btn-primary btn-block" onclick="step2Next()">提案を生成する →</button>
   </div>
 
-  <!-- ======== PAGE 3: 提案生成 ======== -->
+  <!-- ======== STEP 3: 提案 ======== -->
   <div class="page" id="page3">
-    <button class="back-btn" onclick="goTo(2)">← 戻る（案件情報）</button>
+    <button class="back" onclick="goTo(2)">← 案件情報に戻る</button>
 
-    <div class="block-notice" id="blockNotice">
+    <!-- AI使用不可ブロック -->
+    <div class="alert alert-block" id="blockAlert">
       ✕ この案件は生成AIの使用が禁止されています。<br>
-      このツールでの提案文生成はできません。<br>
-      戻るボタンから案件情報を変更してください。
+      提案文の自動生成はできません。案件情報を変更してください。
     </div>
 
-    <div id="proposalSection">
+    <!-- 提案アングル選択 -->
+    <div id="angleSection">
       <div class="card">
-        <div class="section-label">提案アングルを選ぶ</div>
-        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:14px;">
-          気に入った提案を選んで最終文を生成します。複数選択可。
-        </p>
-        <div class="loading visible" id="genLoading">
+        <div class="card-title">提案アングルを選ぶ <span style="font-size:.7rem;color:var(--muted);">（複数選択可）</span></div>
+        <div class="loader show" id="genLoader">
           <div class="spinner"></div>
           <span>提案を生成中（Web検索含む）...</span>
         </div>
-        <div class="proposal-list" id="proposalList"></div>
-        <div class="error-box" id="page3Error"></div>
+        <div class="proposals" id="proposalList"></div>
+        <div class="alert alert-danger" id="page3Err"></div>
       </div>
-
-      <div class="step-actions" id="step2Actions" style="display:none;">
-        <button class="btn btn-primary" id="composeFinalBtn" onclick="composeFinal()">選択した提案で最終文を作成 →</button>
-        <button class="btn btn-ghost" id="cancelBtn" onclick="cancelRequest()">中断</button>
+      <div class="actions" id="angleActions" style="display:none;">
+        <button class="btn btn-primary" id="composeBtn" onclick="composeFinal()">選択した提案で文章を生成 →</button>
+        <button class="btn btn-ghost"   id="cancelBtn"  onclick="cancelReq()" style="display:none;">中断</button>
       </div>
     </div>
 
+    <!-- 最終提案文 -->
     <div id="finalSection" style="display:none;">
       <div class="card">
-        <div class="section-label">最終提案文</div>
-        <div class="loading" id="finalLoading">
+        <div class="card-title">最終提案文</div>
+        <div class="loader" id="finalLoader">
           <div class="spinner"></div>
-          <span>提案文を仕上げ中...</span>
+          <span>文章を仕上げ中...</span>
         </div>
         <textarea id="finalText" readonly placeholder="ここに提案文が表示されます"></textarea>
-        <div class="copy-feedback" id="copyFeedback"></div>
+        <p class="copy-msg" id="copyMsg"></p>
       </div>
-      <button class="btn btn-success btn-full" onclick="copyFinal()" style="margin-bottom:10px;">
-        📋 コピーする
-      </button>
-      <button class="btn btn-ghost btn-full" onclick="resetToProposals()">
-        ← 提案の選び直し
-      </button>
+      <div class="actions">
+        <button class="btn btn-success" onclick="copyText()">📋 コピーする</button>
+        <button class="btn btn-ghost"   onclick="backToAngles()">← 提案の選び直し</button>
+      </div>
     </div>
   </div>
 
-</div>
+</div><!-- /.app -->
 
 <script>
-  // ========================
-  //  状態管理
-  // ========================
-  const state = {
-    apiKey: '',
-    imageBase64: '',
-    imageType: '',
-    jobTitle: '',
-    jobContent: '',
-    jobReward: '',
-    aiUsage: 'unknown',
-    proposals: [],
-    selectedIds: new Set(),
-    abortController: null,
-  };
+// ========================================================
+//  アプリ状態
+// ========================================================
+const S = {
+  key:         '',
+  imgBase64:   '',
+  imgType:     '',
+  title:       '',
+  content:     '',
+  reward:      '',
+  aiUsage:     'unknown',   // 'ok' | 'ng' | 'unknown'
+  proposals:   [],
+  selected:    new Set(),
+  abort:       null,
+  cacheKey:    '',          // title+content のハッシュ（提案キャッシュ用）
+};
 
-  // ========================
-  //  初期化 — sessionStorage のみ使用（タブを閉じると消える）
-  // ========================
-  window.addEventListener('DOMContentLoaded', () => {
-    const saved = sessionStorage.getItem('anthropic_api_key');
-    if (saved) {
-      document.getElementById('apiKeyInput').value = saved;
-      state.apiKey = saved;
-    }
-  });
-
-  // ========================
-  //  安全なDOM操作ユーティリティ
-  // ========================
-
-  // https: スキームの URL のみ許可。それ以外は null を返す
-  function sanitizeUrl(raw) {
-    if (!raw) return null;
-    try {
-      const u = new URL(raw);
-      return u.protocol === 'https:' ? u.href : null;
-    } catch {
-      return null;
-    }
+// ========================================================
+//  起動時
+// ========================================================
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = sessionStorage.getItem('anth_key');
+  if (saved) {
+    document.getElementById('apiKeyInput').value = saved;
+    S.key = saved;
   }
+  setAiUsage('unknown');
+});
 
-  // AI出力をそのまま innerHTML に渡さず textContent でセット
-  function setText(el, text) {
-    el.textContent = text;
-  }
-
-  // ========================
-  //  JSONパース（マークダウンフェンス・前後テキスト対応）
-  // ========================
-  function parseJson(raw) {
-    // すべてのマークダウンフェンスを除去
-    const cleaned = raw.replace(/```(?:json)?/gi, '').trim();
-    // 先頭の { から末尾の } を切り出すことで、前後の説明文を無視する
-    const start = cleaned.indexOf('{');
-    const end   = cleaned.lastIndexOf('}');
-    if (start === -1 || end === -1 || end <= start) throw new Error('JSONが見つかりません');
-    return JSON.parse(cleaned.slice(start, end + 1));
-  }
-
-  // ========================
-  //  ページ遷移
-  // ========================
-  function goTo(n) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById(`page${n}`).classList.add('active');
-    window.scrollTo(0, 0);
-  }
-
-  function goToPage2() {
-    const key = document.getElementById('apiKeyInput').value.trim();
-    if (!key) { alert('APIキーを入力してください'); return; }
-    sessionStorage.setItem('anthropic_api_key', key);
-    state.apiKey = key;
-    goTo(2);
-  }
-
-  async function goToPage3() {
-    const err = document.getElementById('page2Error');
-    err.classList.remove('visible');
-
-    const title   = document.getElementById('jobTitle').value.trim();
-    const content = document.getElementById('jobContent').value.trim();
-    if (!title && !content) {
-      err.textContent = '案件タイトルまたは業務内容を入力してください';
-      err.classList.add('visible');
-      return;
-    }
-
-    // 案件情報が変わっていたらキャッシュを破棄する
-    const changed = title !== state.jobTitle || content !== state.jobContent;
-    state.jobTitle   = title;
-    state.jobContent = content;
-    state.jobReward  = document.getElementById('jobReward').value.trim();
-
-    goTo(3);
-    document.getElementById('blockNotice').classList.remove('visible');
-    document.getElementById('finalSection').style.display = 'none';
-    document.getElementById('page3Error').classList.remove('visible');
-    document.getElementById('composeFinalBtn').disabled = false;
-
-    if (state.aiUsage === 'ng') {
-      document.getElementById('proposalSection').style.display = 'none';
-      document.getElementById('blockNotice').classList.add('visible');
-      return;
-    }
-
-    document.getElementById('proposalSection').style.display = 'block';
-
-    // 案件情報が変わっていなければキャッシュした提案をそのまま表示
-    if (!changed && state.proposals.length > 0) {
-      document.getElementById('genLoading').classList.remove('visible');
-      document.getElementById('step2Actions').style.display = 'flex';
-      return;
-    }
-
-    document.getElementById('proposalList').innerHTML = '';
-    document.getElementById('step2Actions').style.display = 'none';
-    state.proposals = [];
-    state.selectedIds = new Set();
-
-    await generateProposals();
-  }
-
-  function deleteApiKey() {
-    sessionStorage.removeItem('anthropic_api_key');
-    document.getElementById('apiKeyInput').value = '';
-    state.apiKey = '';
-  }
-
-  // ========================
-  //  AI使用可否ピル
-  // ========================
-  function selectAiUsage(val) {
-    state.aiUsage = val;
-    document.getElementById('pill-ok').className      = 'pill';
-    document.getElementById('pill-ng').className      = 'pill';
-    document.getElementById('pill-unknown').className = 'pill';
-    if (val === 'ok')      document.getElementById('pill-ok').classList.add('selected-ok');
-    if (val === 'ng')      document.getElementById('pill-ng').classList.add('selected-ng');
-    if (val === 'unknown') document.getElementById('pill-unknown').classList.add('selected-unknown');
-  }
-
-  // ========================
-  //  画像アップロード
-  // ========================
-  function onImageSelected(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const result = ev.target.result;
-      const [header, b64] = result.split(',');
-      state.imageBase64 = b64;
-      state.imageType   = header.match(/data:(.*);/)[1];
-      const preview = document.getElementById('uploadedPreview');
-      preview.src = result;
-      preview.style.display = 'block';
-      document.getElementById('extractRow').style.display = 'block';
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async function extractFromImage() {
-    if (!state.imageBase64) return;
-    const key = sessionStorage.getItem('anthropic_api_key');
-    if (!key) { alert('APIキーが必要です'); return; }
-
-    showExtractLoading(true);
-    try {
-      const res = await callClaude(key, [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: state.imageType, data: state.imageBase64 }
-            },
-            {
-              type: 'text',
-              text: `このCrowdWorksの案件スクリーンショットから以下の情報をJSON形式で抽出してください。
-見当たらない項目は空文字にしてください。
-生成AIの使用可否については "ok"（使用可）, "ng"（使用不可・禁止）, "unknown"（不明・記載なし）のいずれかで返してください。
-
-{
-  "title": "案件タイトル",
-  "content": "業務内容",
-  "reward": "報酬",
-  "ai_usage": "ok|ng|unknown"
+// ========================================================
+//  ページ遷移
+// ========================================================
+function goTo(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page' + n).classList.add('active');
+  window.scrollTo(0, 0);
+  updateStepper(n);
 }
 
-JSONのみ返してください。`
-            }
-          ]
-        }
-      ]);
+function updateStepper(current) {
+  [1, 2, 3].forEach(n => {
+    const el = document.getElementById('step-dot-' + n);
+    el.classList.remove('active', 'done');
+    if (n < current) el.classList.add('done');
+    if (n === current) el.classList.add('active');
+  });
+}
 
-      const text = res.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      const json = parseJson(text);
+// ========================================================
+//  Step 1 → Step 2
+// ========================================================
+function step1Next() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) return alert('APIキーを入力してください');
+  sessionStorage.setItem('anth_key', key);
+  S.key = key;
+  goTo(2);
+}
 
-      if (json.title)    document.getElementById('jobTitle').value   = json.title;
-      if (json.content)  document.getElementById('jobContent').value = json.content;
-      if (json.reward)   document.getElementById('jobReward').value  = json.reward;
-      if (json.ai_usage) selectAiUsage(json.ai_usage);
+function clearKey() {
+  sessionStorage.removeItem('anth_key');
+  document.getElementById('apiKeyInput').value = '';
+  S.key = '';
+}
 
-    } catch(e) {
-      alert('画像からの抽出に失敗しました: ' + e.message);
-    } finally {
-      showExtractLoading(false);
-    }
+// ========================================================
+//  Step 2 → Step 3
+// ========================================================
+async function step2Next() {
+  const errEl = document.getElementById('page2Err');
+  errEl.classList.remove('show');
+
+  const title   = document.getElementById('jobTitle').value.trim();
+  const content = document.getElementById('jobContent').value.trim();
+  if (!title && !content) {
+    errEl.textContent = '案件タイトルまたは業務内容を入力してください';
+    errEl.classList.add('show');
+    return;
   }
 
-  function showExtractLoading(show) {
-    document.getElementById('extractLoading').classList.toggle('visible', show);
-    // 画像が選択されているときだけ extractRow を表示する
-    document.getElementById('extractRow').style.display = (show || !state.imageBase64) ? 'none' : 'block';
+  const newCacheKey = title + '\x00' + content;
+  const cacheHit = newCacheKey === S.cacheKey && S.proposals.length > 0;
+
+  S.title   = title;
+  S.content = content;
+  S.reward  = document.getElementById('jobReward').value.trim();
+
+  goTo(3);
+  resetPage3();
+
+  if (S.aiUsage === 'ng') {
+    document.getElementById('angleSection').style.display = 'none';
+    document.getElementById('blockAlert').classList.add('show');
+    return;
   }
 
-  // ========================
-  //  提案生成
-  // ========================
-  async function generateProposals() {
-    const key = sessionStorage.getItem('anthropic_api_key');
-    state.abortController = new AbortController();
-    document.getElementById('genLoading').classList.add('visible');
-    document.getElementById('cancelBtn').classList.add('visible');
+  if (cacheHit) {
+    // 同じ案件なので再生成しない
+    document.getElementById('genLoader').classList.remove('show');
+    renderProposals();
+    document.getElementById('angleActions').style.display = 'flex';
+    return;
+  }
 
-    const aiNote = state.aiUsage === 'ok'
-      ? '生成AIの使用は許可されています。AIツールを活用した提案も積極的に含めてください。'
-      : '生成AIの使用可否は不明です。AIツール前提の提案は避けてください。';
+  S.cacheKey = newCacheKey;
+  S.proposals = [];
+  S.selected  = new Set();
+  await generateProposals();
+}
 
-    const prompt = `あなたはクラウドソーシング（CrowdWorks）の提案文作成の専門家です。
-以下の案件に対して、受注確率を高める提案アングルを5つ考えてください。
+function resetPage3() {
+  document.getElementById('blockAlert').classList.remove('show');
+  document.getElementById('angleSection').style.display = 'block';
+  document.getElementById('finalSection').style.display = 'none';
+  document.getElementById('page3Err').classList.remove('show');
+  document.getElementById('angleActions').style.display = 'none';
+  document.getElementById('cancelBtn').style.display = 'none';
+  document.getElementById('composeBtn').disabled = false;
+  document.getElementById('genLoader').classList.add('show');
+  document.getElementById('proposalList').innerHTML = '';
+}
 
-【案件タイトル】${state.jobTitle}
-【業務内容】${state.jobContent}
-【報酬】${state.jobReward}
+// ========================================================
+//  AI使用可否
+// ========================================================
+function setAiUsage(val) {
+  S.aiUsage = val;
+  ['ok', 'ng', 'unknown'].forEach(v => {
+    const el = document.getElementById('pill-' + v);
+    el.removeAttribute('data-selected');
+    if (v === val) el.setAttribute('data-selected', val);
+  });
+}
+
+// ========================================================
+//  画像アップロード
+// ========================================================
+function onFileChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const dataUrl = ev.target.result;
+    const [header, b64] = dataUrl.split(',');
+    S.imgBase64 = b64;
+    S.imgType   = header.match(/data:(.*);/)[1];
+    const preview = document.getElementById('preview');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
+    document.getElementById('extractWrap').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function extractFromImage() {
+  if (!S.imgBase64) return;
+  setExtractLoading(true);
+  try {
+    const data = await apiCall({
+      messages: [{
+        role: 'user',
+        content: [
+          { type: 'image', source: { type: 'base64', media_type: S.imgType, data: S.imgBase64 } },
+          { type: 'text',  text: `このCrowdWorksの案件スクリーンショットから情報をJSON形式で返してください。
+見当たらない項目は空文字にしてください。
+ai_usage は "ok"（使用可）"ng"（使用不可）"unknown"（不明）のいずれか。
+JSONのみ返してください。
+
+{"title":"","content":"","reward":"","ai_usage":""}` }
+        ]
+      }],
+      max_tokens: 1000,
+    });
+    const json = parseJson(getText(data));
+    if (json.title)    document.getElementById('jobTitle').value   = json.title;
+    if (json.content)  document.getElementById('jobContent').value = json.content;
+    if (json.reward)   document.getElementById('jobReward').value  = json.reward;
+    if (json.ai_usage) setAiUsage(json.ai_usage);
+  } catch (e) {
+    alert('画像からの抽出に失敗しました: ' + e.message);
+  } finally {
+    setExtractLoading(false);
+  }
+}
+
+function setExtractLoading(on) {
+  document.getElementById('extractLoader').classList.toggle('show', on);
+  document.getElementById('extractWrap').style.display = on ? 'none' : 'block';
+}
+
+// ========================================================
+//  提案アングル生成
+// ========================================================
+async function generateProposals() {
+  S.abort = new AbortController();
+  document.getElementById('cancelBtn').style.display = 'inline-flex';
+
+  const aiNote = S.aiUsage === 'ok'
+    ? 'AIツールの使用は許可されています。活用提案も積極的に含めてください。'
+    : 'AIツール使用可否は不明です。AI前提の提案は避けてください。';
+
+  const prompt = `あなたはCrowdWorksの提案文作成の専門家です。
+以下の案件に対して受注確率を高める提案アングルを5つ考えてください。
+
+【案件タイトル】${S.title}
+【業務内容】${S.content}
+【報酬】${S.reward}
 【AI使用】${aiNote}
 
-各提案には以下を含めてください：
-- 提案アングル（何を売りにするか）
-- 想定される「結果・成果」（クライアントが得るもの）
-- 根拠・実績のエビデンス（Web検索で得た具体的なデータや情報とそのURL）
+Web検索ツールを使い、説得力を高める具体的な数字・事例・URLを調べてください。
 
-Web検索ツールを使って、提案の説得力を高める具体的な数字や事例を調べてください。
+以下のJSON形式のみで返してください（説明文不要）：
+{"proposals":[{"id":1,"angle":"見出し（30文字以内）","result":"クライアントが得る成果","evidence":"エビデンス（具体的数値含む）","evidence_url":"https://..."}]}`;
 
-以下のJSON形式で返してください（JSONのみ、マークダウン不要）：
-{
-  "proposals": [
-    {
-      "id": 1,
-      "angle": "提案アングルの見出し（30文字以内）",
-      "result": "クライアントが得る具体的な結果・成果",
-      "evidence": "エビデンスの説明（具体的な数値や事例を含む）",
-      "evidence_url": "https://..."
-    }
-  ]
-}`;
-
-    try {
-      const res = await callClaudeWithSearch(key, prompt, state.abortController.signal);
-      const text = res.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      const json = parseJson(text);
-      state.proposals = json.proposals;
-      state.selectedIds = new Set();
-      renderProposals();
-    } catch(e) {
-      if (e.name === 'AbortError') return;
-      const errBox = document.getElementById('page3Error');
-      errBox.textContent = '提案の生成に失敗しました: ' + e.message;
-      errBox.classList.add('visible');
-    } finally {
-      document.getElementById('genLoading').classList.remove('visible');
-      document.getElementById('cancelBtn').classList.remove('visible');
-      document.getElementById('step2Actions').style.display = 'flex';
-    }
+  try {
+    const data = await apiCallWithSearch(prompt, S.abort.signal);
+    const json = parseJson(getText(data));
+    S.proposals = json.proposals ?? [];
+    renderProposals();
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+    const el = document.getElementById('page3Err');
+    el.textContent = '提案の生成に失敗しました: ' + e.message;
+    el.classList.add('show');
+  } finally {
+    document.getElementById('genLoader').classList.remove('show');
+    document.getElementById('cancelBtn').style.display = 'none';
+    document.getElementById('angleActions').style.display = 'flex';
   }
+}
 
-  function renderProposals() {
-    const list = document.getElementById('proposalList');
-    list.innerHTML = '';
-    state.proposals.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'proposal-card';
-      card.id = `pcard-${p.id}`;
+function renderProposals() {
+  const list = document.getElementById('proposalList');
+  list.innerHTML = '';
+  S.proposals.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'p-card' + (S.selected.has(p.id) ? ' selected' : '');
+    card.dataset.id = p.id;
 
-      const check = document.createElement('div');
-      check.className = 'check';
-      check.textContent = '✓';
+    const check = el('div', 'p-check', '✓');
 
-      const title = document.createElement('div');
-      title.className = 'p-title';
-      setText(title, p.angle);
+    const angle = el('div', 'p-angle');
+    angle.textContent = p.angle;
 
-      const result = document.createElement('div');
-      result.className = 'p-result';
-      setText(result, '📈 ' + p.result);
+    const result = el('div', 'p-result');
+    result.textContent = '📈 ' + p.result;
 
-      const evidence = document.createElement('div');
-      evidence.className = 'p-evidence';
-      setText(evidence, '🔗 ' + p.evidence);
+    const evidence = el('div', 'p-evidence');
+    evidence.textContent = '🔗 ' + p.evidence;
 
-      // https: URL のみアンカーとして追加
-      const safeUrl = sanitizeUrl(p.evidence_url);
-      if (safeUrl) {
-        const a = document.createElement('a');
-        a.href = safeUrl;
-        a.textContent = safeUrl;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        evidence.append(' ', a);
-      }
-
-      card.append(check, title, result, evidence);
-      card.addEventListener('click', () => toggleProposal(p.id));
-      list.appendChild(card);
-    });
-  }
-
-  function toggleProposal(id) {
-    if (state.selectedIds.has(id)) {
-      state.selectedIds.delete(id);
-      document.getElementById(`pcard-${id}`).classList.remove('selected');
-    } else {
-      state.selectedIds.add(id);
-      document.getElementById(`pcard-${id}`).classList.add('selected');
+    const safeUrl = toHttpsUrl(p.evidence_url);
+    if (safeUrl) {
+      const a = document.createElement('a');
+      a.href = safeUrl;
+      a.textContent = safeUrl;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      evidence.append(' ', a);
     }
+
+    card.append(check, angle, result, evidence);
+    card.addEventListener('click', () => toggleSelect(p.id, card));
+    list.appendChild(card);
+  });
+}
+
+function toggleSelect(id, card) {
+  if (S.selected.has(id)) {
+    S.selected.delete(id);
+    card.classList.remove('selected');
+  } else {
+    S.selected.add(id);
+    card.classList.add('selected');
   }
+}
 
-  // ========================
-  //  最終提案文生成
-  // ========================
-  async function composeFinal() {
-    if (state.selectedIds.size === 0) {
-      alert('提案を1つ以上選んでください');
-      return;
-    }
-    const selected = state.proposals.filter(p => state.selectedIds.has(p.id));
-    const key = sessionStorage.getItem('anthropic_api_key');
+// ========================================================
+//  最終提案文生成
+// ========================================================
+async function composeFinal() {
+  if (S.selected.size === 0) return alert('提案を1つ以上選んでください');
 
-    // 二重送信を防ぐ
-    document.getElementById('composeFinalBtn').disabled = true;
-    document.getElementById('finalSection').style.display = 'block';
-    document.getElementById('finalLoading').classList.add('visible');
-    document.getElementById('finalText').value = '';
-    document.getElementById('copyFeedback').textContent = '';
-    window.scrollTo(0, document.body.scrollHeight);
+  const chosen = S.proposals.filter(p => S.selected.has(p.id));
 
-    const aiNote = state.aiUsage === 'ok'
-      ? '生成AIの使用は許可されています。必要に応じてAIツール活用を訴求してください。'
-      : 'AIツールの言及は避けてください。';
+  document.getElementById('composeBtn').disabled = true;
+  document.getElementById('finalSection').style.display = 'block';
+  document.getElementById('finalLoader').classList.add('show');
+  document.getElementById('finalText').value = '';
+  document.getElementById('copyMsg').textContent = '';
+  window.scrollTo(0, document.body.scrollHeight);
 
-    const selectedText = selected.map(p =>
-      `【提案アングル】${p.angle}\n【結果】${p.result}\n【エビデンス】${p.evidence}`
-    ).join('\n\n');
+  const aiNote = S.aiUsage === 'ok'
+    ? 'AIツールの活用を訴求してもよい。'
+    : 'AIツールへの言及は避ける。';
 
-    const prompt = `あなたはクラウドソーシング（CrowdWorks）の提案文作成のプロです。
-以下の案件と選択した提案アングルをもとに、受注確率の高い提案文を作成してください。
+  const angles = chosen.map(p =>
+    `・${p.angle}：${p.result}（${p.evidence}）`
+  ).join('\n');
 
-【案件タイトル】${state.jobTitle}
-【業務内容】${state.jobContent}
-【報酬】${state.jobReward}
+  const prompt = `あなたはCrowdWorksの提案文作成のプロです。
+以下の案件情報と選んだ提案アングルをもとに、受注確率の高い提案文を1本書いてください。
+
+【案件タイトル】${S.title}
+【業務内容】${S.content}
+【報酬】${S.reward}
 【AI使用方針】${aiNote}
 
-【選択した提案アングル】
-${selectedText}
+【使用する提案アングル】
+${angles}
 
-以下の点を守って提案文を作成してください：
-- 書き出しは「はじめまして」ではなく、案件に即した一言から始める
+制約：
+- 冒頭は「はじめまして」を使わず、案件に即した一言から始める
 - 具体的な数値・実績を盛り込む
-- クライアントのメリットを明確に伝える
 - 500〜700文字程度
-- 最後に「よろしくお願いいたします」で締める
-- 過度な敬語・回りくどい表現は避ける
+- 末尾は「よろしくお願いいたします」で締める
+- 回りくどい敬語は使わない
 
-提案文のみ出力してください（説明不要）。`;
+提案文のみ出力してください。`;
 
-    state.abortController = new AbortController();
-    document.getElementById('cancelBtn').classList.add('visible');
+  S.abort = new AbortController();
+  document.getElementById('cancelBtn').style.display = 'inline-flex';
 
-    try {
-      const res = await callClaude(key, [{ role: 'user', content: prompt }], state.abortController.signal);
-      const text = res.content.filter(b => b.type === 'text').map(b => b.text).join('');
-      document.getElementById('finalText').value = text;
-    } catch(e) {
-      if (e.name !== 'AbortError') {
-        document.getElementById('finalText').value = '生成に失敗しました: ' + e.message;
-      }
-    } finally {
-      document.getElementById('finalLoading').classList.remove('visible');
-      document.getElementById('cancelBtn').classList.remove('visible');
-      document.getElementById('composeFinalBtn').disabled = false;
+  try {
+    const data = await apiCall({ messages: [{ role: 'user', content: prompt }], max_tokens: 1500 }, S.abort.signal);
+    document.getElementById('finalText').value = getText(data);
+  } catch (e) {
+    if (e.name !== 'AbortError') {
+      document.getElementById('finalText').value = '生成に失敗しました: ' + e.message;
     }
+  } finally {
+    document.getElementById('finalLoader').classList.remove('show');
+    document.getElementById('cancelBtn').style.display = 'none';
+    document.getElementById('composeBtn').disabled = false;
   }
+}
 
-  // ========================
-  //  コピー
-  // ========================
-  async function copyFinal() {
-    const text = document.getElementById('finalText').value;
-    const fb = document.getElementById('copyFeedback');
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.getElementById('finalText');
-      ta.select();
-      document.execCommand('copy');
-    }
-    fb.textContent = 'コピーしました！';
-    setTimeout(() => { fb.textContent = ''; }, 2500);
+async function copyText() {
+  const text = document.getElementById('finalText').value;
+  const msg  = document.getElementById('copyMsg');
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    document.getElementById('finalText').select();
+    document.execCommand('copy');
   }
+  msg.textContent = 'コピーしました！';
+  setTimeout(() => { msg.textContent = ''; }, 2500);
+}
 
-  function resetToProposals() {
-    document.getElementById('finalSection').style.display = 'none';
-    document.getElementById('composeFinalBtn').disabled = false;
-    window.scrollTo(0, 0);
+function backToAngles() {
+  document.getElementById('finalSection').style.display = 'none';
+  document.getElementById('composeBtn').disabled = false;
+  window.scrollTo(0, 0);
+}
+
+function cancelReq() {
+  S.abort?.abort();
+}
+
+// ========================================================
+//  API呼び出し
+// ========================================================
+
+// 通常の呼び出し
+async function apiCall(body, signal) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    signal,
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': S.key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-6', ...body }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
   }
+  return res.json();
+}
 
-  // ========================
-  //  キャンセル
-  // ========================
-  function cancelRequest() {
-    if (state.abortController) state.abortController.abort();
+// Web検索ツール付き。stop_reason=tool_use の間ループして end_turn まで継続する
+async function apiCallWithSearch(userPrompt, signal) {
+  const tools    = [{ type: 'web_search_20250305', name: 'web_search' }];
+  let messages   = [{ role: 'user', content: userPrompt }];
+
+  while (true) {
+    const data = await apiCall({ tools, messages, max_tokens: 8000 }, signal);
+
+    if (data.stop_reason !== 'tool_use') return data;
+
+    // tool_use ブロックを履歴に追加し、空の tool_result を返してターンを継続
+    const results = data.content
+      .filter(b => b.type === 'tool_use')
+      .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' }));
+
+    messages = [
+      ...messages,
+      { role: 'assistant', content: data.content },
+      { role: 'user',      content: results },
+    ];
   }
+}
 
-  // ========================
-  //  API呼び出し
-  // ========================
-  async function callClaude(apiKey, messages, signal) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 2000,
-        messages,
-      }),
-      signal,
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err?.error?.message || `HTTP ${res.status}`);
-    }
-    return res.json();
-  }
+// ========================================================
+//  ユーティリティ
+// ========================================================
 
-  // Web検索ツール付き呼び出し。
-  // web_search はサーバーサイドツールだが stop_reason が "tool_use" の間は
-  // ターンを継続して end_turn になるまでループする必要がある。
-  async function callClaudeWithSearch(apiKey, userPrompt, signal) {
-    const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
-    let messages = [{ role: 'user', content: userPrompt }];
+// レスポンスからテキストを結合
+function getText(data) {
+  return data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+}
 
-    while (true) {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 8000,
-          tools,
-          messages,
-        }),
-        signal,
-      });
+// マークダウンフェンスと前後のテキストを除去して JSON をパース
+function parseJson(raw) {
+  const s = raw.replace(/```(?:json)?/gi, '').trim();
+  const start = s.indexOf('{');
+  const end   = s.lastIndexOf('}');
+  if (start === -1 || end <= start) throw new Error('JSONが見つかりません');
+  return JSON.parse(s.slice(start, end + 1));
+}
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err?.error?.message || `HTTP ${res.status}`);
-      }
+// https: URL のみ許可
+function toHttpsUrl(raw) {
+  if (!raw) return null;
+  try {
+    const u = new URL(raw);
+    return u.protocol === 'https:' ? u.href : null;
+  } catch { return null; }
+}
 
-      const data = await res.json();
-
-      // end_turn または max_tokens に達したら完了
-      if (data.stop_reason !== 'tool_use') return data;
-
-      // tool_use ブロックを assistant ターンとして履歴に追加し、
-      // tool_result を user ターンとして返してループを継続する
-      const toolResults = data.content
-        .filter(b => b.type === 'tool_use')
-        .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' }));
-
-      messages = [
-        ...messages,
-        { role: 'assistant', content: data.content },
-        { role: 'user', content: toolResults },
-      ];
-    }
-  }
+// 要素生成ショートハンド
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls)  e.className   = cls;
+  if (text) e.textContent = text;
+  return e;
+}
 </script>
 </body>
 </html>
