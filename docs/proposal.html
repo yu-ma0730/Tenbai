@@ -590,14 +590,28 @@ function onImg(e) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    const url = ev.target.result;
-    const [hdr, b64] = url.split(',');
-    S.imgB64  = b64;
-    S.imgType = hdr.match(/data:(.*);/)[1];
-    const prev = document.getElementById('imgPreview');
-    prev.src = url; prev.style.display = 'block';
-    document.getElementById('extractWrap').style.display = 'block';
-    hide('imgErr');
+    const img = new Image();
+    img.onload = () => {
+      const MAX = 4000;
+      let { width: w, height: h } = img;
+      if (w > MAX || h > MAX) {
+        const ratio = Math.min(MAX / w, MAX / h);
+        w = Math.round(w * ratio);
+        h = Math.round(h * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+      const [hdr, b64] = dataUrl.split(',');
+      S.imgB64  = b64;
+      S.imgType = 'image/jpeg';
+      const prev = document.getElementById('imgPreview');
+      prev.src = dataUrl; prev.style.display = 'block';
+      document.getElementById('extractWrap').style.display = 'block';
+      hide('imgErr');
+    };
+    img.src = ev.target.result;
   };
   reader.readAsDataURL(file);
 }
