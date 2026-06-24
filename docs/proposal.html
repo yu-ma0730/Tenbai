@@ -646,12 +646,13 @@ JSONのみ返してください。`
   //  JSONパース（マークダウンフェンス対応）
   // ========================
   function parseJson(raw) {
-    // ```json ... ``` または ``` ... ``` を除去
-    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '').trim();
-    // 先頭の { または [ を探して以降をパース（前後の説明文を無視）
-    const start = cleaned.search(/[{[]/);
-    if (start === -1) throw new Error('JSONが見つかりません');
-    return JSON.parse(cleaned.slice(start));
+    // マークダウンフェンスを全除去
+    const cleaned = raw.replace(/```(?:json)?/gi, '').trim();
+    // 先頭の { と末尾の } を探して切り出すことで前後の説明文を無視する
+    const start = cleaned.indexOf('{');
+    const end   = cleaned.lastIndexOf('}');
+    if (start === -1 || end === -1 || end <= start) throw new Error('JSONが見つかりません');
+    return JSON.parse(cleaned.slice(start, end + 1));
   }
 
   // ========================
@@ -907,7 +908,7 @@ ${selectedText}
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
-          max_tokens: 4000,
+          max_tokens: 8000,
           tools,
           messages,
         }),
