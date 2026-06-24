@@ -85,12 +85,13 @@
     .btn:hover:not(:disabled) { opacity: .82; }
     .btn:active:not(:disabled) { transform: scale(.97); }
     .btn:disabled { opacity: .38; cursor: not-allowed; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
+    .btn-primary        { background: var(--accent);  color: #fff; }
+    .btn-ghost          { background: transparent; border: 1px solid var(--border); color: var(--muted); }
     .btn-outline-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
-    .btn-success { background: var(--success); color: #0f1117; }
-    .btn-block   { width: 100%; padding: 13px; font-size: .95rem; margin-top: 4px; }
-    .btn-sm      { padding: 7px 12px; font-size: .8rem; }
+    .btn-success        { background: var(--success); color: #0f1117; }
+    .btn-warn           { background: transparent; border: 1px solid var(--warn); color: var(--warn); }
+    .btn-block          { width: 100%; padding: 13px; font-size: .95rem; margin-top: 4px; }
+    .btn-sm             { padding: 7px 12px; font-size: .8rem; }
 
     /* AI使用可否 */
     .pills { display: flex; gap: 8px; }
@@ -125,10 +126,10 @@
     /* アラート */
     .alert { display: none; padding: 12px 14px; border-radius: 7px; font-size: .84rem; line-height: 1.55; }
     .alert.on { display: block; }
-    .alert-err  { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger);  margin-top: 10px; }
-    .alert-warn { background: rgba(240,165,0,.08); border: 1px solid var(--warn);    color: var(--warn);    margin-top: 10px; }
-    .alert-ok   { background: rgba(62,207,142,.1); border: 1px solid var(--success); color: var(--success); margin-top: 10px; }
-    .alert-block { background: rgba(255,95,95,.07); border: 1px solid var(--danger); color: var(--danger); text-align: center; padding: 22px; border-radius: var(--r); margin-bottom: 14px; }
+    .alert-err   { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger);  margin-top: 10px; }
+    .alert-warn  { background: rgba(240,165,0,.08); border: 1px solid var(--warn);    color: var(--warn);    margin-top: 10px; }
+    .alert-ok    { background: rgba(62,207,142,.1); border: 1px solid var(--success); color: var(--success); margin-top: 10px; }
+    .alert-block { background: rgba(255,95,95,.07); border: 1px solid var(--danger);  color: var(--danger);  text-align: center; padding: 22px; border-radius: var(--r); margin-bottom: 14px; }
 
     /* 提案カード */
     .p-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
@@ -152,9 +153,51 @@
     .p-evidence a { color: var(--accent); text-decoration: none; word-break: break-all; }
     .p-evidence a:hover { text-decoration: underline; }
 
-    /* 最終テキスト */
-    #finalText { width: 100%; min-height: 240px; font-size: .88rem; line-height: 1.8; }
+    /* 最終提案文エリア */
+    #finalText { width: 100%; min-height: 260px; font-size: .88rem; line-height: 1.8; }
     .copy-ok { font-size: .8rem; color: var(--success); margin-top: 7px; min-height: 18px; }
+
+    /* 推敲パネル */
+    .refine-panel {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      margin-top: 14px;
+      background: rgba(91,127,255,.04);
+    }
+    .refine-panel .rp-title {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .refine-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 12px;
+    }
+    .r-chip {
+      padding: 6px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      font-size: .8rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .15s;
+      user-select: none;
+    }
+    .r-chip:hover { border-color: var(--accent); color: var(--text); }
+    .r-chip.on { background: rgba(91,127,255,.2); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+    .refine-custom { margin-bottom: 10px; }
+    .refine-custom textarea {
+      font-size: .84rem;
+      min-height: 60px;
+      padding: 8px 10px;
+    }
 
     /* 共通パーツ */
     .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -167,7 +210,6 @@
     .note { font-size: .75rem; color: var(--muted); margin-top: 7px; line-height: 1.5; }
     .note.warn { color: var(--warn); }
 
-    /* ページ表示切替 */
     .page { display: none; }
     .page.active { display: block; }
   </style>
@@ -196,13 +238,14 @@
       <div class="field">
         <label for="keyInput">APIキー</label>
         <div class="row">
-          <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" onkeydown="if(event.key==='Enter')step1Next()">
+          <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off"
+            onkeydown="if(event.key==='Enter')step1Next()">
           <button class="btn btn-outline-danger btn-sm" onclick="clearKey()">削除</button>
         </div>
         <p class="note warn">⚠ キーはこのタブを閉じると消えます（sessionStorage に一時保存）</p>
       </div>
       <div class="alert alert-err" id="keyErr"></div>
-      <div class="alert alert-ok"  id="keyOk">✓ 接続確認OK</div>
+      <div class="alert alert-ok"  id="keyOk">✓ 接続確認 OK</div>
     </div>
     <button class="btn btn-primary btn-block" id="step1Btn" onclick="step1Next()">接続確認して次へ →</button>
   </div>
@@ -264,7 +307,7 @@
       自動生成はできません。案件情報を変更してください。
     </div>
 
-    <!-- 提案アングル -->
+    <!-- 提案アングル選択 -->
     <div id="angleWrap">
       <div class="card">
         <div class="card-ttl">
@@ -286,13 +329,33 @@
     <div id="finalWrap" style="display:none;">
       <div class="card">
         <div class="card-ttl">最終提案文</div>
-        <div class="loader" id="finalLoader"><div class="spin"></div><span>文章を仕上げ中...</span></div>
+        <div class="loader" id="finalLoader"><div class="spin"></div><span id="finalMsg">文章を仕上げ中...</span></div>
         <textarea id="finalText" readonly placeholder="ここに提案文が表示されます"></textarea>
         <div class="copy-ok" id="copyOk"></div>
+
+        <!-- 推敲パネル -->
+        <div class="refine-panel" id="refinePanel" style="display:none;">
+          <div class="rp-title">✏️ 推敲する — 修正方向を選んでください</div>
+          <div class="refine-chips" id="refineChips">
+            <div class="r-chip" data-val="もっと簡潔にして、300〜400文字程度に短くする">簡潔にする</div>
+            <div class="r-chip" data-val="より丁寧で信頼感のある文体にする">丁寧にする</div>
+            <div class="r-chip" data-val="書き出しをより印象的でキャッチーな一文に変える">書き出しを変える</div>
+            <div class="r-chip" data-val="数値・実績・具体例をさらに盛り込んで説得力を上げる">説得力を上げる</div>
+            <div class="r-chip" data-val="クライアントが得るメリットをより明確に強調する">メリットを強調</div>
+            <div class="r-chip" data-val="全体のトーンをもう少しカジュアルで親しみやすい文体にする">カジュアルにする</div>
+          </div>
+          <div class="refine-custom">
+            <label style="font-size:.8rem;color:var(--muted);display:block;margin-bottom:5px;">または自由に指示を入力</label>
+            <textarea id="refineCustom" rows="2" placeholder="例）第二段落をもっと具体的に。価格面への言及を追加して。"></textarea>
+          </div>
+          <button class="btn btn-warn btn-sm" id="refineBtn" onclick="doRefine()">✏️ この内容で推敲する</button>
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn btn-success" onclick="doCopy()">📋 コピーする</button>
-        <button class="btn btn-ghost"   onclick="backToAngles()">← 提案を選び直す</button>
+
+      <div class="actions" id="finalActs">
+        <button class="btn btn-success"       onclick="doCopy()">📋 コピーする</button>
+        <button class="btn btn-warn"          id="toggleRefineBtn" onclick="toggleRefinePanel()">✏️ 推敲する</button>
+        <button class="btn btn-ghost"         onclick="backToAngles()">← 提案を選び直す</button>
       </div>
     </div>
   </div>
@@ -309,7 +372,7 @@ const S = {
   ai: 'unknown',
   proposals: [], selected: new Set(),
   cacheKey: '',
-  ctl: null,   // AbortController
+  ctl: null,
 };
 
 // ─────────────────────────────────────────
@@ -319,6 +382,13 @@ window.addEventListener('DOMContentLoaded', () => {
   const k = sessionStorage.getItem('anth_key');
   if (k) { document.getElementById('keyInput').value = k; S.key = k; }
   setAi('unknown');
+
+  // 推敲チップのトグル
+  document.getElementById('refineChips').addEventListener('click', e => {
+    const chip = e.target.closest('.r-chip');
+    if (!chip) return;
+    chip.classList.toggle('on');
+  });
 });
 
 // ─────────────────────────────────────────
@@ -343,19 +413,14 @@ async function step1Next() {
   hide('keyErr'); hide('keyOk');
 
   if (!key) return showErr('keyErr', 'APIキーを入力してください');
-  if (!key.startsWith('sk-ant-')) return showErr('keyErr', 'APIキーの形式が正しくありません（sk-ant- から始まる文字列）');
+  if (!key.startsWith('sk-ant-')) return showErr('keyErr', '形式が正しくありません（sk-ant- で始まる文字列）');
 
   S.key = key;
   const btn = document.getElementById('step1Btn');
-  btn.disabled = true;
-  btn.textContent = '接続確認中...';
+  btn.disabled = true; btn.textContent = '確認中...';
 
   try {
-    // 最小コストで接続確認
-    await callAPI({
-      messages: [{ role: 'user', content: 'Hi' }],
-      max_tokens: 5,
-    });
+    await callAPI({ messages: [{ role: 'user', content: 'Hi' }], max_tokens: 5 });
     sessionStorage.setItem('anth_key', key);
     show('keyOk');
     setTimeout(() => goTo(2), 600);
@@ -363,8 +428,7 @@ async function step1Next() {
     showErr('keyErr', 'APIキーの確認に失敗しました: ' + friendlyErr(e));
     S.key = '';
   } finally {
-    btn.disabled = false;
-    btn.textContent = '接続確認して次へ →';
+    btn.disabled = false; btn.textContent = '接続確認して次へ →';
   }
 }
 
@@ -376,7 +440,7 @@ function clearKey() {
 }
 
 // ─────────────────────────────────────────
-//  Step 2: 案件情報 → Step 3
+//  Step 2 → Step 3
 // ─────────────────────────────────────────
 async function step2Next() {
   hide('p2Err');
@@ -384,7 +448,7 @@ async function step2Next() {
   const content = document.getElementById('fContent').value.trim();
   if (!title && !content) return showErr('p2Err', '案件タイトルまたは業務内容を入力してください');
 
-  const ck = title + '\x00' + content;
+  const ck  = title + '\x00' + content;
   const hit = ck === S.cacheKey && S.proposals.length > 0;
 
   S.title   = title;
@@ -401,7 +465,6 @@ async function step2Next() {
   }
 
   if (hit) {
-    // キャッシュ利用
     document.getElementById('genLoader').classList.remove('on');
     renderProposals();
     show('angleActs');
@@ -427,14 +490,6 @@ function resetStep3() {
   document.getElementById('genMsg').textContent = '提案を生成中...';
 }
 
-function show(id) { document.getElementById(id).classList.add('on'); }
-function hide(id) { document.getElementById(id).classList.remove('on'); }
-function showErr(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.classList.add('on');
-}
-
 // ─────────────────────────────────────────
 //  AI使用可否
 // ─────────────────────────────────────────
@@ -458,8 +513,7 @@ function onImg(e) {
     S.imgB64  = b64;
     S.imgType = hdr.match(/data:(.*);/)[1];
     const prev = document.getElementById('imgPreview');
-    prev.src = url;
-    prev.style.display = 'block';
+    prev.src = url; prev.style.display = 'block';
     document.getElementById('extractWrap').style.display = 'block';
     hide('imgErr');
   };
@@ -477,10 +531,8 @@ async function extractImg() {
         role: 'user',
         content: [
           { type: 'image', source: { type: 'base64', media_type: S.imgType, data: S.imgB64 } },
-          { type: 'text', text:
-            `このCrowdWorksの案件スクリーンショットから情報をJSON形式のみで返してください。
+          { type: 'text', text: `このCrowdWorksの案件スクリーンショットから情報をJSON形式のみで返してください。
 見当たらない項目は空文字。ai_usage は "ok"/"ng"/"unknown" のいずれか。
-
 {"title":"","content":"","reward":"","ai_usage":""}` }
         ]
       }],
@@ -524,7 +576,6 @@ async function genProposals() {
 {"proposals":[{"id":1,"angle":"見出し30文字以内","result":"クライアントが得る成果","evidence":"エビデンス（数値含む）","evidence_url":"https://..."}]}`;
 
   try {
-    // Web検索付きで試みる
     document.getElementById('genMsg').textContent = '提案を生成中（Web検索含む）...';
     const data = await callWithSearch(prompt, S.ctl.signal);
     const j    = safeJson(getText(data));
@@ -532,16 +583,10 @@ async function genProposals() {
     renderProposals();
   } catch (e) {
     if (e.name === 'AbortError') return;
-
-    // Web検索なしでリトライ
     if (isSearchErr(e)) {
       try {
-        document.getElementById('genMsg').textContent = '提案を生成中（検索なし）...';
-        const w = { id: 'p3Warn' };
-        const data2 = await callAPI({
-          messages: [{ role: 'user', content: prompt }],
-          max_tokens: 3000,
-        }, S.ctl.signal);
+        document.getElementById('genMsg').textContent = '提案を生成中...';
+        const data2 = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 3000 }, S.ctl.signal);
         const j2 = safeJson(getText(data2));
         S.proposals = j2.proposals ?? [];
         showWarn('p3Warn', '⚠ Web検索ツールが使えないため、AIの知識で提案を生成しました。');
@@ -559,18 +604,6 @@ async function genProposals() {
   }
 }
 
-function showWarn(id, msg) {
-  const el = document.getElementById(id);
-  el.textContent = msg;
-  el.classList.add('on');
-}
-
-// Web検索エラーかどうか判定
-function isSearchErr(e) {
-  const m = e.message || '';
-  return m.includes('tool') || m.includes('search') || m.includes('400') || m.includes('not_found');
-}
-
 function renderProposals() {
   const list = document.getElementById('pList');
   list.innerHTML = '';
@@ -581,20 +614,16 @@ function renderProposals() {
   S.proposals.forEach(p => {
     const card = make('div', 'p-card' + (S.selected.has(p.id) ? ' sel' : ''));
     card.dataset.id = p.id;
-
-    const chk = make('div', 'p-chk'); chk.textContent = '✓';
-
+    const chk   = make('div', 'p-chk'); chk.textContent = '✓';
     const angle = make('div', 'p-angle'); angle.textContent = p.angle;
     const res   = make('div', 'p-result'); res.textContent = '📈 ' + p.result;
     const evid  = make('div', 'p-evidence'); evid.textContent = '🔗 ' + p.evidence;
-
-    const url = safeUrl(p.evidence_url);
+    const url   = safeUrl(p.evidence_url);
     if (url) {
       const a = make('a'); a.href = url; a.textContent = url;
       a.target = '_blank'; a.rel = 'noopener noreferrer';
       evid.append(' ', a);
     }
-
     card.append(chk, angle, res, evid);
     card.onclick = () => {
       if (S.selected.has(p.id)) { S.selected.delete(p.id); card.classList.remove('sel'); }
@@ -615,8 +644,10 @@ async function composeFinal() {
   document.getElementById('composeBtn').disabled = true;
   document.getElementById('finalWrap').style.display = 'block';
   document.getElementById('finalLoader').classList.add('on');
+  document.getElementById('finalMsg').textContent = '文章を仕上げ中...';
   document.getElementById('finalText').value = '';
   document.getElementById('copyOk').textContent = '';
+  document.getElementById('refinePanel').style.display = 'none';
   window.scrollTo(0, document.body.scrollHeight);
 
   const aiNote = S.ai === 'ok' ? 'AIツールの活用を訴求してよい。' : 'AIツールへの言及は避ける。';
@@ -648,6 +679,7 @@ ${angles}
   try {
     const data = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 1600 }, S.ctl.signal);
     document.getElementById('finalText').value = getText(data);
+    document.getElementById('refinePanel').style.display = 'none';
   } catch (e) {
     if (e.name !== 'AbortError') {
       document.getElementById('finalText').value = '生成に失敗しました: ' + friendlyErr(e);
@@ -659,6 +691,72 @@ ${angles}
   }
 }
 
+// ─────────────────────────────────────────
+//  推敲
+// ─────────────────────────────────────────
+function toggleRefinePanel() {
+  const panel = document.getElementById('refinePanel');
+  const isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
+async function doRefine() {
+  const current = document.getElementById('finalText').value.trim();
+  if (!current) return alert('まず提案文を生成してください');
+
+  // 選択されたチップの指示を収集
+  const chips = [...document.querySelectorAll('#refineChips .r-chip.on')]
+    .map(c => c.dataset.val);
+  const custom = document.getElementById('refineCustom').value.trim();
+
+  if (!chips.length && !custom) {
+    return alert('修正方向を選ぶか、自由記述欄に指示を入力してください');
+  }
+
+  const instructions = [...chips, ...(custom ? [custom] : [])].join('\n');
+
+  const btn = document.getElementById('refineBtn');
+  btn.disabled = true;
+  document.getElementById('finalLoader').classList.add('on');
+  document.getElementById('finalMsg').textContent = '推敲中...';
+  document.getElementById('copyOk').textContent = '';
+
+  const prompt = `以下の提案文を推敲してください。
+
+【現在の提案文】
+${current}
+
+【案件情報】
+タイトル：${S.title}
+業務内容：${S.content}
+
+【修正指示】
+${instructions}
+
+修正した提案文のみ出力してください（説明文・コメント不要）。`;
+
+  S.ctl = new AbortController();
+
+  try {
+    const data = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 1600 }, S.ctl.signal);
+    document.getElementById('finalText').value = getText(data);
+    // チップのON状態をリセット
+    document.querySelectorAll('#refineChips .r-chip.on').forEach(c => c.classList.remove('on'));
+    document.getElementById('refineCustom').value = '';
+  } catch (e) {
+    if (e.name !== 'AbortError') alert('推敲に失敗しました: ' + friendlyErr(e));
+  } finally {
+    document.getElementById('finalLoader').classList.remove('on');
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────
+//  コピー・戻る
+// ─────────────────────────────────────────
 async function doCopy() {
   const txt = document.getElementById('finalText').value;
   const ok  = document.getElementById('copyOk');
@@ -692,25 +790,20 @@ async function callAPI(body, signal) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    const msg = err?.error?.message || `HTTP ${res.status}`;
-    throw new Error(msg);
+    throw new Error(err?.error?.message || `HTTP ${res.status}`);
   }
   return res.json();
 }
 
-// Web検索ツール付き。stop_reason=tool_use の間ループして end_turn まで待つ
 async function callWithSearch(prompt, signal) {
   const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
   let msgs = [{ role: 'user', content: prompt }];
-
   for (let i = 0; i < 10; i++) {
     const data = await callAPI({ tools, messages: msgs, max_tokens: 8000 }, signal);
     if (data.stop_reason !== 'tool_use') return data;
-
     const results = data.content
       .filter(b => b.type === 'tool_use')
       .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' }));
-
     msgs = [...msgs,
       { role: 'assistant', content: data.content },
       { role: 'user',      content: results },
@@ -739,22 +832,26 @@ function safeUrl(raw) {
   catch { return null; }
 }
 
-// エラーをユーザー向けに変換
 function friendlyErr(e) {
   const m = e.message || '';
-  if (m.includes('401') || m.includes('auth'))          return 'APIキーが無効です。正しいキーを確認してください。';
-  if (m.includes('403'))                                 return 'このAPIキーでは操作が許可されていません。';
-  if (m.includes('429') || m.includes('rate'))          return 'API使用量の上限に達しました。しばらく待ってから再試行してください。';
-  if (m.includes('500') || m.includes('overloaded'))    return 'Anthropicのサーバーが混雑しています。しばらく待ってから再試行してください。';
+  if (m.includes('401') || m.includes('auth'))       return 'APIキーが無効です。正しいキーを確認してください。';
+  if (m.includes('403'))                              return 'このAPIキーでは操作が許可されていません。';
+  if (m.includes('429') || m.includes('rate'))       return 'API使用量の上限に達しました。しばらく待ってから再試行してください。';
+  if (m.includes('500') || m.includes('overloaded')) return 'サーバーが混雑しています。しばらく待ってから再試行してください。';
   if (m.includes('Failed to fetch') || m.includes('NetworkError')) return 'ネットワーク接続を確認してください。';
   return m;
 }
 
-function make(tag, cls) {
-  const e = document.createElement(tag);
-  if (cls) e.className = cls;
-  return e;
+function isSearchErr(e) {
+  const m = e.message || '';
+  return m.includes('tool') || m.includes('search') || m.includes('400') || m.includes('not_found');
 }
+
+function show(id)            { document.getElementById(id).classList.add('on'); }
+function hide(id)            { document.getElementById(id).classList.remove('on'); }
+function showErr(id, msg)    { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
+function showWarn(id, msg)   { const el = document.getElementById(id); el.textContent = msg; el.classList.add('on'); }
+function make(tag, cls)      { const e = document.createElement(tag); if (cls) e.className = cls; return e; }
 </script>
 </body>
 </html>
