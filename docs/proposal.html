@@ -8,17 +8,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:           #0f1117;
-      --surface:      #1a1d27;
-      --border:       #2e3350;
-      --accent:       #5b7fff;
-      --accent-hover: #3a4ea8;
-      --text:         #e8eaf0;
-      --muted:        #7b82a0;
-      --success:      #3ecf8e;
-      --danger:       #ff5f5f;
-      --warn:         #f0a500;
-      --radius:       10px;
+      --bg:      #0f1117;
+      --surface: #1a1d27;
+      --border:  #2e3350;
+      --accent:  #5b7fff;
+      --text:    #e8eaf0;
+      --muted:   #7b82a0;
+      --success: #3ecf8e;
+      --danger:  #ff5f5f;
+      --warn:    #f0a500;
+      --r:       10px;
       --font: 'Segoe UI', 'Hiragino Kaku Gothic ProN', sans-serif;
     }
 
@@ -29,671 +28,486 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 32px 16px 80px;
+      padding: 28px 16px 80px;
     }
 
-    .app {
-      width: 100%;
-      max-width: 660px;
-    }
+    .wrap { width: 100%; max-width: 680px; }
 
-    /* ── ヘッダー ── */
-    .header {
-      text-align: center;
-      margin-bottom: 36px;
-    }
-    .header h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: .05em;
-    }
-    .header h1 span { color: var(--accent); }
-    .header p {
-      margin-top: 6px;
-      font-size: .8rem;
-      color: var(--muted);
-    }
+    /* ヘッダー */
+    header { text-align: center; margin-bottom: 32px; }
+    header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: .04em; }
+    header h1 em { color: var(--accent); font-style: normal; }
+    header p { margin-top: 6px; font-size: .8rem; color: var(--muted); }
 
-    /* ── ステッパー ── */
-    .stepper {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      margin-bottom: 28px;
-    }
-    .step {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex: 1;
-    }
-    .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    /* ステッパー */
+    .stepper { display: flex; align-items: center; margin-bottom: 28px; }
+    .step { display: flex; align-items: center; gap: 7px; flex: 1; }
+    .step-n {
+      width: 28px; height: 28px; border-radius: 50%;
       border: 2px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .75rem;
-      font-weight: 700;
-      color: var(--muted);
-      flex-shrink: 0;
-      transition: all .2s;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .74rem; font-weight: 700; color: var(--muted);
+      flex-shrink: 0; transition: all .2s;
     }
-    .step.active .step-num  { border-color: var(--accent); background: var(--accent); color: #fff; }
-    .step.done   .step-num  { border-color: var(--success); background: var(--success); color: #fff; }
-    .step-label {
-      font-size: .78rem;
-      color: var(--muted);
-      transition: color .2s;
-    }
-    .step.active .step-label { color: var(--text); }
-    .step-line {
-      flex: 1;
-      height: 2px;
-      background: var(--border);
-      margin: 0 8px;
-    }
+    .step.active .step-n { border-color: var(--accent); background: var(--accent); color: #fff; }
+    .step.done   .step-n { border-color: var(--success); background: var(--success); color: #fff; }
+    .step-lbl { font-size: .78rem; color: var(--muted); }
+    .step.active .step-lbl { color: var(--text); }
+    .step-line { flex: 1; height: 2px; background: var(--border); margin: 0 6px; }
 
-    /* ── カード ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 24px;
-      margin-bottom: 14px;
-    }
-    .card-title {
-      font-size: .7rem;
-      font-weight: 700;
-      letter-spacing: .1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      margin-bottom: 16px;
-    }
+    /* カード */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 22px; margin-bottom: 14px; }
+    .card-ttl { font-size: .7rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
 
-    /* ── フォーム部品 ── */
-    .field { margin-bottom: 16px; }
+    /* フォーム */
+    .field { margin-bottom: 14px; }
     .field:last-child { margin-bottom: 0; }
-    .field label {
-      display: block;
-      font-size: .82rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+    .field > label { display: block; font-size: .82rem; color: var(--muted); margin-bottom: 6px; }
 
-    input[type="text"],
-    input[type="password"],
-    textarea,
-    select {
-      width: 100%;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      color: var(--text);
-      font-family: var(--font);
-      font-size: .9rem;
-      padding: 10px 12px;
-      outline: none;
+    input[type=text], input[type=password], textarea {
+      width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-family: var(--font);
+      font-size: .9rem; padding: 10px 12px; outline: none; resize: vertical;
       transition: border-color .15s;
-      resize: vertical;
     }
-    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    input:focus, textarea:focus { border-color: var(--accent); }
 
-    .input-row {
-      display: flex;
-      gap: 8px;
-      align-items: flex-start;
-    }
-    .input-row input { flex: 1; }
+    .row { display: flex; gap: 8px; align-items: flex-start; }
+    .row input { flex: 1; }
 
-    /* ── ボタン ── */
+    /* ボタン */
     .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      padding: 11px 20px;
-      border: none;
-      border-radius: 7px;
-      font-family: var(--font);
-      font-size: .88rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity .15s, transform .1s;
-      line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 18px; border: none; border-radius: 7px;
+      font-family: var(--font); font-size: .88rem; font-weight: 600;
+      cursor: pointer; transition: opacity .15s, transform .1s; line-height: 1;
     }
     .btn:hover:not(:disabled) { opacity: .82; }
     .btn:active:not(:disabled) { transform: scale(.97); }
-    .btn:disabled { opacity: .4; cursor: not-allowed; }
-
+    .btn:disabled { opacity: .38; cursor: not-allowed; }
     .btn-primary { background: var(--accent); color: #fff; }
     .btn-ghost   { background: transparent; border: 1px solid var(--border); color: var(--muted); }
-    .btn-danger  { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
+    .btn-outline-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); }
     .btn-success { background: var(--success); color: #0f1117; }
-    .btn-block   { width: 100%; padding: 14px; font-size: .95rem; }
-    .btn-sm      { padding: 8px 13px; font-size: .8rem; }
+    .btn-block   { width: 100%; padding: 13px; font-size: .95rem; margin-top: 4px; }
+    .btn-sm      { padding: 7px 12px; font-size: .8rem; }
 
-    /* ── AI使用可否ピル ── */
-    .pill-group { display: flex; gap: 8px; }
+    /* AI使用可否 */
+    .pills { display: flex; gap: 8px; }
     .pill {
-      flex: 1;
-      text-align: center;
-      padding: 9px 0;
-      border-radius: 7px;
-      border: 1px solid var(--border);
-      font-size: .84rem;
-      font-weight: 600;
-      cursor: pointer;
-      color: var(--muted);
-      transition: all .15s;
-      user-select: none;
+      flex: 1; text-align: center; padding: 9px 0; border-radius: 7px;
+      border: 1px solid var(--border); font-size: .84rem; font-weight: 600;
+      cursor: pointer; color: var(--muted); user-select: none; transition: all .15s;
     }
     .pill:hover { border-color: var(--accent); color: var(--text); }
-    .pill[data-selected="ok"]      { background: rgba(62,207,142,.15); border-color: var(--success); color: var(--success); }
-    .pill[data-selected="ng"]      { background: rgba(255,95,95,.15);  border-color: var(--danger);  color: var(--danger); }
-    .pill[data-selected="unknown"] { background: rgba(91,127,255,.15); border-color: var(--accent);  color: var(--accent); }
+    .pill.sel-ok  { background: rgba(62,207,142,.15); border-color: var(--success); color: var(--success); }
+    .pill.sel-ng  { background: rgba(255,95,95,.15);  border-color: var(--danger);  color: var(--danger); }
+    .pill.sel-unk { background: rgba(91,127,255,.15); border-color: var(--accent);  color: var(--accent); }
 
-    /* ── 画像アップロード ── */
-    .upload-area {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      text-align: center;
-      color: var(--muted);
-      cursor: pointer;
-      position: relative;
-      transition: border-color .15s;
+    /* 画像アップロード */
+    .dropzone {
+      border: 2px dashed var(--border); border-radius: var(--r);
+      padding: 28px; text-align: center; color: var(--muted);
+      cursor: pointer; position: relative; transition: border-color .15s;
     }
-    .upload-area:hover { border-color: var(--accent); }
-    .upload-area input[type="file"] {
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      cursor: pointer;
-      width: 100%;
-      height: 100%;
-    }
-    .upload-area .icon { font-size: 2rem; margin-bottom: 6px; }
-    .upload-area .hint { font-size: .82rem; }
-    #preview {
-      display: none;
-      width: 100%;
-      max-height: 200px;
-      object-fit: contain;
-      border-radius: 7px;
-      margin-top: 12px;
-    }
+    .dropzone:hover { border-color: var(--accent); }
+    .dropzone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+    .dropzone .di { font-size: 1.8rem; margin-bottom: 6px; }
+    .dropzone .dh { font-size: .82rem; }
+    #imgPreview { display: none; width: 100%; max-height: 200px; object-fit: contain; border-radius: 7px; margin-top: 12px; }
 
-    /* ── スピナー / ローダー ── */
-    .loader {
-      display: none;
-      align-items: center;
-      gap: 10px;
-      color: var(--muted);
-      font-size: .84rem;
-      padding: 10px 0;
-    }
-    .loader.show { display: flex; }
-    .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin .65s linear infinite;
-      flex-shrink: 0;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    /* ローダー */
+    .loader { display: none; align-items: center; gap: 10px; color: var(--muted); font-size: .84rem; padding: 10px 0; }
+    .loader.on { display: flex; }
+    .spin { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: sp .65s linear infinite; flex-shrink: 0; }
+    @keyframes sp { to { transform: rotate(360deg); } }
 
-    /* ── アラート ── */
-    .alert {
-      display: none;
-      padding: 12px 14px;
-      border-radius: 7px;
-      font-size: .84rem;
-      margin-top: 12px;
-      line-height: 1.5;
-    }
-    .alert.show { display: block; }
-    .alert-danger  { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger); }
-    .alert-warn    { background: rgba(240,165,0,.1);   border: 1px solid var(--warn);    color: var(--warn); }
-    .alert-block   { background: rgba(255,95,95,.07); border: 1px solid var(--danger);  color: var(--danger); text-align: center; padding: 20px; }
+    /* アラート */
+    .alert { display: none; padding: 12px 14px; border-radius: 7px; font-size: .84rem; line-height: 1.55; }
+    .alert.on { display: block; }
+    .alert-err  { background: rgba(255,95,95,.1);  border: 1px solid var(--danger);  color: var(--danger);  margin-top: 10px; }
+    .alert-warn { background: rgba(240,165,0,.08); border: 1px solid var(--warn);    color: var(--warn);    margin-top: 10px; }
+    .alert-ok   { background: rgba(62,207,142,.1); border: 1px solid var(--success); color: var(--success); margin-top: 10px; }
+    .alert-block { background: rgba(255,95,95,.07); border: 1px solid var(--danger); color: var(--danger); text-align: center; padding: 22px; border-radius: var(--r); margin-bottom: 14px; }
 
-    /* ── 提案カード ── */
-    .proposals { display: flex; flex-direction: column; gap: 12px; }
-
+    /* 提案カード */
+    .p-list { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
     .p-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px 48px 16px 16px;
-      cursor: pointer;
-      position: relative;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+      padding: 15px 46px 15px 15px; cursor: pointer; position: relative;
       transition: border-color .15s, background .15s;
     }
-    .p-card:hover { border-color: var(--accent-hover); }
-    .p-card.selected { border-color: var(--accent); background: rgba(91,127,255,.06); }
-
-    .p-check {
-      position: absolute;
-      top: 14px; right: 14px;
-      width: 22px; height: 22px;
-      border: 2px solid var(--border);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .72rem;
-      color: transparent;
-      transition: all .15s;
+    .p-card:hover { border-color: #3a4ea8; }
+    .p-card.sel { border-color: var(--accent); background: rgba(91,127,255,.06); }
+    .p-chk {
+      position: absolute; top: 13px; right: 13px;
+      width: 22px; height: 22px; border: 2px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .72rem; color: transparent; transition: all .15s;
     }
-    .p-card.selected .p-check {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #fff;
-    }
-
-    .p-angle   { font-size: .93rem; font-weight: 700; margin-bottom: 7px; }
-    .p-result  { font-size: .8rem; color: var(--success); margin-bottom: 5px; }
-    .p-evidence{ font-size: .77rem; color: var(--muted); }
-    .p-evidence a {
-      color: var(--accent);
-      text-decoration: none;
-      word-break: break-all;
-    }
+    .p-card.sel .p-chk { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .p-angle    { font-size: .93rem; font-weight: 700; margin-bottom: 7px; }
+    .p-result   { font-size: .8rem; color: var(--success); margin-bottom: 5px; }
+    .p-evidence { font-size: .77rem; color: var(--muted); }
+    .p-evidence a { color: var(--accent); text-decoration: none; word-break: break-all; }
     .p-evidence a:hover { text-decoration: underline; }
 
-    /* ── 最終提案文 ── */
-    #finalText {
-      width: 100%;
-      min-height: 240px;
-      font-size: .88rem;
-      line-height: 1.75;
-    }
-    .copy-msg {
-      font-size: .8rem;
-      color: var(--success);
-      margin-top: 8px;
-      min-height: 18px;
-    }
+    /* 最終テキスト */
+    #finalText { width: 100%; min-height: 240px; font-size: .88rem; line-height: 1.8; }
+    .copy-ok { font-size: .8rem; color: var(--success); margin-top: 7px; min-height: 18px; }
 
-    /* ── アクション行 ── */
-    .actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
+    /* 共通パーツ */
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; color: var(--muted); font-size: .82rem;
+      cursor: pointer; padding: 0; margin-bottom: 18px; transition: color .15s;
     }
-
-    /* ── 戻るリンク ── */
-    .back {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: .82rem;
-      cursor: pointer;
-      padding: 0;
-      margin-bottom: 20px;
-      transition: color .15s;
-    }
-    .back:hover { color: var(--text); }
-
-    /* ── メモ ── */
-    .note {
-      font-size: .75rem;
-      color: var(--muted);
-      margin-top: 7px;
-      line-height: 1.5;
-    }
+    .back-btn:hover { color: var(--text); }
+    .note { font-size: .75rem; color: var(--muted); margin-top: 7px; line-height: 1.5; }
     .note.warn { color: var(--warn); }
 
-    /* ── ページ切り替え ── */
+    /* ページ表示切替 */
     .page { display: none; }
     .page.active { display: block; }
   </style>
 </head>
 <body>
-<div class="app">
+<div class="wrap">
 
-  <div class="header">
-    <h1>提案文<span>ジェネレーター</span></h1>
-    <p>CrowdWorks の案件情報を入力して、受注確率の高い提案文を自動生成します</p>
-  </div>
+  <header>
+    <h1>提案文<em>ジェネレーター</em></h1>
+    <p>CrowdWorks の案件情報を入力し、受注確率の高い提案文を AI で自動生成します</p>
+  </header>
 
   <!-- ステッパー -->
-  <div class="stepper" id="stepper">
-    <div class="step active" id="step-dot-1">
-      <div class="step-num">1</div>
-      <div class="step-label">APIキー</div>
-    </div>
+  <div class="stepper">
+    <div class="step active" id="sd1"><div class="step-n">1</div><div class="step-lbl">APIキー</div></div>
     <div class="step-line"></div>
-    <div class="step" id="step-dot-2">
-      <div class="step-num">2</div>
-      <div class="step-label">案件情報</div>
-    </div>
+    <div class="step" id="sd2"><div class="step-n">2</div><div class="step-lbl">案件情報</div></div>
     <div class="step-line"></div>
-    <div class="step" id="step-dot-3">
-      <div class="step-num">3</div>
-      <div class="step-label">提案生成</div>
-    </div>
+    <div class="step" id="sd3"><div class="step-n">3</div><div class="step-lbl">提案生成</div></div>
   </div>
 
-  <!-- ======== STEP 1: APIキー ======== -->
+  <!-- ===== STEP 1: APIキー ===== -->
   <div class="page active" id="page1">
     <div class="card">
-      <div class="card-title">Anthropic APIキー</div>
+      <div class="card-ttl">Anthropic API キー</div>
       <div class="field">
-        <label for="apiKeyInput">APIキー</label>
-        <div class="input-row">
-          <input type="password" id="apiKeyInput" placeholder="sk-ant-..." autocomplete="off">
-          <button class="btn btn-danger btn-sm" onclick="clearKey()">削除</button>
+        <label for="keyInput">APIキー</label>
+        <div class="row">
+          <input type="password" id="keyInput" placeholder="sk-ant-api03-..." autocomplete="off" onkeydown="if(event.key==='Enter')step1Next()">
+          <button class="btn btn-outline-danger btn-sm" onclick="clearKey()">削除</button>
         </div>
         <p class="note warn">⚠ キーはこのタブを閉じると消えます（sessionStorage に一時保存）</p>
       </div>
+      <div class="alert alert-err" id="keyErr"></div>
+      <div class="alert alert-ok"  id="keyOk">✓ 接続確認OK</div>
     </div>
-    <button class="btn btn-primary btn-block" onclick="step1Next()">次へ →</button>
+    <button class="btn btn-primary btn-block" id="step1Btn" onclick="step1Next()">接続確認して次へ →</button>
   </div>
 
-  <!-- ======== STEP 2: 案件情報 ======== -->
+  <!-- ===== STEP 2: 案件情報 ===== -->
   <div class="page" id="page2">
-    <button class="back" onclick="goTo(1)">← 戻る</button>
+    <button class="back-btn" onclick="goTo(1)">← 戻る</button>
 
     <div class="card">
-      <div class="card-title">スクリーンショット（任意）</div>
-      <div class="upload-area" id="uploadArea">
-        <input type="file" id="imageFile" accept="image/*" onchange="onFileChange(event)">
-        <div class="icon">📷</div>
-        <div class="hint">クリックまたはドラッグ&ドロップで画像を追加</div>
+      <div class="card-ttl">スクリーンショット（任意）</div>
+      <div class="dropzone">
+        <input type="file" id="imgFile" accept="image/*" onchange="onImg(event)">
+        <div class="di">📷</div>
+        <div class="dh">クリックまたはドラッグ＆ドロップ</div>
       </div>
-      <img id="preview" alt="プレビュー">
-      <div style="margin-top:10px; display:none;" id="extractWrap">
-        <button class="btn btn-ghost btn-sm" onclick="extractFromImage()">🔍 画像から情報を読み取る</button>
+      <img id="imgPreview" alt="プレビュー">
+      <div id="extractWrap" style="display:none; margin-top:10px;">
+        <button class="btn btn-ghost btn-sm" onclick="extractImg()">🔍 画像から情報を読み取る</button>
       </div>
-      <div class="loader" id="extractLoader">
-        <div class="spinner"></div>
-        <span>画像から情報を抽出中...</span>
-      </div>
+      <div class="loader" id="extractLoader"><div class="spin"></div><span>画像を解析中...</span></div>
+      <div class="alert alert-err" id="imgErr"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">案件情報</div>
+      <div class="card-ttl">案件情報</div>
       <div class="field">
-        <label for="jobTitle">案件タイトル</label>
-        <input type="text" id="jobTitle" placeholder="例）LP制作（WordPress）">
+        <label for="fTitle">案件タイトル</label>
+        <input type="text" id="fTitle" placeholder="例）LP制作（WordPress）">
       </div>
       <div class="field">
-        <label for="jobContent">業務内容</label>
-        <textarea id="jobContent" rows="6" placeholder="依頼内容・要件をそのまま貼り付けてください"></textarea>
+        <label for="fContent">業務内容</label>
+        <textarea id="fContent" rows="6" placeholder="依頼内容・要件をそのまま貼り付けてください"></textarea>
       </div>
       <div class="field">
-        <label for="jobReward">報酬</label>
-        <input type="text" id="jobReward" placeholder="例）3,000円〜5,000円">
+        <label for="fReward">報酬</label>
+        <input type="text" id="fReward" placeholder="例）3,000円〜5,000円">
       </div>
       <div class="field">
         <label>生成AIの使用可否</label>
-        <div class="pill-group">
-          <div class="pill" id="pill-unknown" onclick="setAiUsage('unknown')">？ 不明</div>
-          <div class="pill" id="pill-ok"      onclick="setAiUsage('ok')">〇 使用可</div>
-          <div class="pill" id="pill-ng"      onclick="setAiUsage('ng')">✕ 使用不可</div>
+        <div class="pills">
+          <div class="pill sel-unk" id="pill-unknown" onclick="setAi('unknown')">？ 不明</div>
+          <div class="pill"         id="pill-ok"      onclick="setAi('ok')">〇 使用可</div>
+          <div class="pill"         id="pill-ng"      onclick="setAi('ng')">✕ 使用不可</div>
         </div>
       </div>
     </div>
 
-    <div class="alert alert-danger" id="page2Err"></div>
+    <div class="alert alert-err" id="p2Err"></div>
     <button class="btn btn-primary btn-block" onclick="step2Next()">提案を生成する →</button>
   </div>
 
-  <!-- ======== STEP 3: 提案 ======== -->
+  <!-- ===== STEP 3: 提案生成 ===== -->
   <div class="page" id="page3">
-    <button class="back" onclick="goTo(2)">← 案件情報に戻る</button>
+    <button class="back-btn" onclick="goTo(2)">← 案件情報に戻る</button>
 
-    <!-- AI使用不可ブロック -->
-    <div class="alert alert-block" id="blockAlert">
+    <!-- AI使用不可 -->
+    <div class="alert-block" id="ngBlock" style="display:none;">
       ✕ この案件は生成AIの使用が禁止されています。<br>
-      提案文の自動生成はできません。案件情報を変更してください。
+      自動生成はできません。案件情報を変更してください。
     </div>
 
-    <!-- 提案アングル選択 -->
-    <div id="angleSection">
+    <!-- 提案アングル -->
+    <div id="angleWrap">
       <div class="card">
-        <div class="card-title">提案アングルを選ぶ <span style="font-size:.7rem;color:var(--muted);">（複数選択可）</span></div>
-        <div class="loader show" id="genLoader">
-          <div class="spinner"></div>
-          <span>提案を生成中（Web検索含む）...</span>
+        <div class="card-ttl">
+          提案アングルを選ぶ
+          <span style="font-size:.7rem;color:var(--muted);font-weight:400;margin-left:6px;">複数選択可</span>
         </div>
-        <div class="proposals" id="proposalList"></div>
-        <div class="alert alert-danger" id="page3Err"></div>
+        <div class="loader on" id="genLoader"><div class="spin"></div><span id="genMsg">提案を生成中...</span></div>
+        <div class="p-list" id="pList"></div>
+        <div class="alert alert-err"  id="p3Err"></div>
+        <div class="alert alert-warn" id="p3Warn"></div>
       </div>
-      <div class="actions" id="angleActions" style="display:none;">
+      <div class="actions" id="angleActs" style="display:none;">
         <button class="btn btn-primary" id="composeBtn" onclick="composeFinal()">選択した提案で文章を生成 →</button>
-        <button class="btn btn-ghost"   id="cancelBtn"  onclick="cancelReq()" style="display:none;">中断</button>
+        <button class="btn btn-ghost"   id="cancelBtn"  onclick="doCancel()" style="display:none;">中断</button>
       </div>
     </div>
 
     <!-- 最終提案文 -->
-    <div id="finalSection" style="display:none;">
+    <div id="finalWrap" style="display:none;">
       <div class="card">
-        <div class="card-title">最終提案文</div>
-        <div class="loader" id="finalLoader">
-          <div class="spinner"></div>
-          <span>文章を仕上げ中...</span>
-        </div>
+        <div class="card-ttl">最終提案文</div>
+        <div class="loader" id="finalLoader"><div class="spin"></div><span>文章を仕上げ中...</span></div>
         <textarea id="finalText" readonly placeholder="ここに提案文が表示されます"></textarea>
-        <p class="copy-msg" id="copyMsg"></p>
+        <div class="copy-ok" id="copyOk"></div>
       </div>
       <div class="actions">
-        <button class="btn btn-success" onclick="copyText()">📋 コピーする</button>
-        <button class="btn btn-ghost"   onclick="backToAngles()">← 提案の選び直し</button>
+        <button class="btn btn-success" onclick="doCopy()">📋 コピーする</button>
+        <button class="btn btn-ghost"   onclick="backToAngles()">← 提案を選び直す</button>
       </div>
     </div>
   </div>
 
-</div><!-- /.app -->
-
+</div><!-- /.wrap -->
 <script>
-// ========================================================
-//  アプリ状態
-// ========================================================
+// ─────────────────────────────────────────
+//  状態
+// ─────────────────────────────────────────
 const S = {
-  key:         '',
-  imgBase64:   '',
-  imgType:     '',
-  title:       '',
-  content:     '',
-  reward:      '',
-  aiUsage:     'unknown',   // 'ok' | 'ng' | 'unknown'
-  proposals:   [],
-  selected:    new Set(),
-  abort:       null,
-  cacheKey:    '',          // title+content のハッシュ（提案キャッシュ用）
+  key: '',
+  imgB64: '', imgType: '',
+  title: '', content: '', reward: '',
+  ai: 'unknown',
+  proposals: [], selected: new Set(),
+  cacheKey: '',
+  ctl: null,   // AbortController
 };
 
-// ========================================================
-//  起動時
-// ========================================================
+// ─────────────────────────────────────────
+//  初期化
+// ─────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  const saved = sessionStorage.getItem('anth_key');
-  if (saved) {
-    document.getElementById('apiKeyInput').value = saved;
-    S.key = saved;
-  }
-  setAiUsage('unknown');
+  const k = sessionStorage.getItem('anth_key');
+  if (k) { document.getElementById('keyInput').value = k; S.key = k; }
+  setAi('unknown');
 });
 
-// ========================================================
-//  ページ遷移
-// ========================================================
+// ─────────────────────────────────────────
+//  ページ遷移・ステッパー
+// ─────────────────────────────────────────
 function goTo(n) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page' + n).classList.add('active');
   window.scrollTo(0, 0);
-  updateStepper(n);
-}
-
-function updateStepper(current) {
-  [1, 2, 3].forEach(n => {
-    const el = document.getElementById('step-dot-' + n);
-    el.classList.remove('active', 'done');
-    if (n < current) el.classList.add('done');
-    if (n === current) el.classList.add('active');
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('sd' + i);
+    el.classList.toggle('done',   i < n);
+    el.classList.toggle('active', i === n);
   });
 }
 
-// ========================================================
-//  Step 1 → Step 2
-// ========================================================
-function step1Next() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key) return alert('APIキーを入力してください');
-  sessionStorage.setItem('anth_key', key);
+// ─────────────────────────────────────────
+//  Step 1: APIキー接続確認
+// ─────────────────────────────────────────
+async function step1Next() {
+  const key = document.getElementById('keyInput').value.trim();
+  hide('keyErr'); hide('keyOk');
+
+  if (!key) return showErr('keyErr', 'APIキーを入力してください');
+  if (!key.startsWith('sk-ant-')) return showErr('keyErr', 'APIキーの形式が正しくありません（sk-ant- から始まる文字列）');
+
   S.key = key;
-  goTo(2);
+  const btn = document.getElementById('step1Btn');
+  btn.disabled = true;
+  btn.textContent = '接続確認中...';
+
+  try {
+    // 最小コストで接続確認
+    await callAPI({
+      messages: [{ role: 'user', content: 'Hi' }],
+      max_tokens: 5,
+    });
+    sessionStorage.setItem('anth_key', key);
+    show('keyOk');
+    setTimeout(() => goTo(2), 600);
+  } catch (e) {
+    showErr('keyErr', 'APIキーの確認に失敗しました: ' + friendlyErr(e));
+    S.key = '';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '接続確認して次へ →';
+  }
 }
 
 function clearKey() {
   sessionStorage.removeItem('anth_key');
-  document.getElementById('apiKeyInput').value = '';
+  document.getElementById('keyInput').value = '';
   S.key = '';
+  hide('keyErr'); hide('keyOk');
 }
 
-// ========================================================
-//  Step 2 → Step 3
-// ========================================================
+// ─────────────────────────────────────────
+//  Step 2: 案件情報 → Step 3
+// ─────────────────────────────────────────
 async function step2Next() {
-  const errEl = document.getElementById('page2Err');
-  errEl.classList.remove('show');
+  hide('p2Err');
+  const title   = document.getElementById('fTitle').value.trim();
+  const content = document.getElementById('fContent').value.trim();
+  if (!title && !content) return showErr('p2Err', '案件タイトルまたは業務内容を入力してください');
 
-  const title   = document.getElementById('jobTitle').value.trim();
-  const content = document.getElementById('jobContent').value.trim();
-  if (!title && !content) {
-    errEl.textContent = '案件タイトルまたは業務内容を入力してください';
-    errEl.classList.add('show');
-    return;
-  }
-
-  const newCacheKey = title + '\x00' + content;
-  const cacheHit = newCacheKey === S.cacheKey && S.proposals.length > 0;
+  const ck = title + '\x00' + content;
+  const hit = ck === S.cacheKey && S.proposals.length > 0;
 
   S.title   = title;
   S.content = content;
-  S.reward  = document.getElementById('jobReward').value.trim();
+  S.reward  = document.getElementById('fReward').value.trim();
 
   goTo(3);
-  resetPage3();
+  resetStep3();
 
-  if (S.aiUsage === 'ng') {
-    document.getElementById('angleSection').style.display = 'none';
-    document.getElementById('blockAlert').classList.add('show');
+  if (S.ai === 'ng') {
+    document.getElementById('ngBlock').style.display = 'block';
+    document.getElementById('angleWrap').style.display = 'none';
     return;
   }
 
-  if (cacheHit) {
-    // 同じ案件なので再生成しない
-    document.getElementById('genLoader').classList.remove('show');
+  if (hit) {
+    // キャッシュ利用
+    document.getElementById('genLoader').classList.remove('on');
     renderProposals();
-    document.getElementById('angleActions').style.display = 'flex';
+    show('angleActs');
     return;
   }
 
-  S.cacheKey = newCacheKey;
+  S.cacheKey = ck;
   S.proposals = [];
   S.selected  = new Set();
-  await generateProposals();
+  await genProposals();
 }
 
-function resetPage3() {
-  document.getElementById('blockAlert').classList.remove('show');
-  document.getElementById('angleSection').style.display = 'block';
-  document.getElementById('finalSection').style.display = 'none';
-  document.getElementById('page3Err').classList.remove('show');
-  document.getElementById('angleActions').style.display = 'none';
+function resetStep3() {
+  document.getElementById('ngBlock').style.display = 'none';
+  document.getElementById('angleWrap').style.display = 'block';
+  document.getElementById('finalWrap').style.display = 'none';
+  document.getElementById('pList').innerHTML = '';
+  hide('p3Err'); hide('p3Warn');
+  document.getElementById('angleActs').style.display = 'none';
   document.getElementById('cancelBtn').style.display = 'none';
   document.getElementById('composeBtn').disabled = false;
-  document.getElementById('genLoader').classList.add('show');
-  document.getElementById('proposalList').innerHTML = '';
+  document.getElementById('genLoader').classList.add('on');
+  document.getElementById('genMsg').textContent = '提案を生成中...';
 }
 
-// ========================================================
+function show(id) { document.getElementById(id).classList.add('on'); }
+function hide(id) { document.getElementById(id).classList.remove('on'); }
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('on');
+}
+
+// ─────────────────────────────────────────
 //  AI使用可否
-// ========================================================
-function setAiUsage(val) {
-  S.aiUsage = val;
-  ['ok', 'ng', 'unknown'].forEach(v => {
-    const el = document.getElementById('pill-' + v);
-    el.removeAttribute('data-selected');
-    if (v === val) el.setAttribute('data-selected', val);
-  });
+// ─────────────────────────────────────────
+function setAi(v) {
+  S.ai = v;
+  document.getElementById('pill-ok').className      = 'pill' + (v === 'ok'      ? ' sel-ok'  : '');
+  document.getElementById('pill-ng').className      = 'pill' + (v === 'ng'      ? ' sel-ng'  : '');
+  document.getElementById('pill-unknown').className = 'pill' + (v === 'unknown' ? ' sel-unk' : '');
 }
 
-// ========================================================
-//  画像アップロード
-// ========================================================
-function onFileChange(e) {
+// ─────────────────────────────────────────
+//  画像アップロード・抽出
+// ─────────────────────────────────────────
+function onImg(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    const dataUrl = ev.target.result;
-    const [header, b64] = dataUrl.split(',');
-    S.imgBase64 = b64;
-    S.imgType   = header.match(/data:(.*);/)[1];
-    const preview = document.getElementById('preview');
-    preview.src = dataUrl;
-    preview.style.display = 'block';
+    const url = ev.target.result;
+    const [hdr, b64] = url.split(',');
+    S.imgB64  = b64;
+    S.imgType = hdr.match(/data:(.*);/)[1];
+    const prev = document.getElementById('imgPreview');
+    prev.src = url;
+    prev.style.display = 'block';
     document.getElementById('extractWrap').style.display = 'block';
+    hide('imgErr');
   };
   reader.readAsDataURL(file);
 }
 
-async function extractFromImage() {
-  if (!S.imgBase64) return;
-  setExtractLoading(true);
+async function extractImg() {
+  if (!S.imgB64) return;
+  document.getElementById('extractLoader').classList.add('on');
+  document.getElementById('extractWrap').style.display = 'none';
+  hide('imgErr');
   try {
-    const data = await apiCall({
+    const data = await callAPI({
       messages: [{
         role: 'user',
         content: [
-          { type: 'image', source: { type: 'base64', media_type: S.imgType, data: S.imgBase64 } },
-          { type: 'text',  text: `このCrowdWorksの案件スクリーンショットから情報をJSON形式で返してください。
-見当たらない項目は空文字にしてください。
-ai_usage は "ok"（使用可）"ng"（使用不可）"unknown"（不明）のいずれか。
-JSONのみ返してください。
+          { type: 'image', source: { type: 'base64', media_type: S.imgType, data: S.imgB64 } },
+          { type: 'text', text:
+            `このCrowdWorksの案件スクリーンショットから情報をJSON形式のみで返してください。
+見当たらない項目は空文字。ai_usage は "ok"/"ng"/"unknown" のいずれか。
 
 {"title":"","content":"","reward":"","ai_usage":""}` }
         ]
       }],
-      max_tokens: 1000,
+      max_tokens: 1200,
     });
-    const json = parseJson(getText(data));
-    if (json.title)    document.getElementById('jobTitle').value   = json.title;
-    if (json.content)  document.getElementById('jobContent').value = json.content;
-    if (json.reward)   document.getElementById('jobReward').value  = json.reward;
-    if (json.ai_usage) setAiUsage(json.ai_usage);
+    const j = safeJson(getText(data));
+    if (j.title)    document.getElementById('fTitle').value   = j.title;
+    if (j.content)  document.getElementById('fContent').value = j.content;
+    if (j.reward)   document.getElementById('fReward').value  = j.reward;
+    if (j.ai_usage) setAi(j.ai_usage);
   } catch (e) {
-    alert('画像からの抽出に失敗しました: ' + e.message);
+    showErr('imgErr', '画像の読み取りに失敗しました: ' + friendlyErr(e));
   } finally {
-    setExtractLoading(false);
+    document.getElementById('extractLoader').classList.remove('on');
+    document.getElementById('extractWrap').style.display = 'block';
   }
 }
 
-function setExtractLoading(on) {
-  document.getElementById('extractLoader').classList.toggle('show', on);
-  document.getElementById('extractWrap').style.display = on ? 'none' : 'block';
-}
-
-// ========================================================
+// ─────────────────────────────────────────
 //  提案アングル生成
-// ========================================================
-async function generateProposals() {
-  S.abort = new AbortController();
+// ─────────────────────────────────────────
+async function genProposals() {
+  S.ctl = new AbortController();
   document.getElementById('cancelBtn').style.display = 'inline-flex';
 
-  const aiNote = S.aiUsage === 'ok'
-    ? 'AIツールの使用は許可されています。活用提案も積極的に含めてください。'
+  const aiNote = S.ai === 'ok'
+    ? 'AIツールの使用は許可されています。'
     : 'AIツール使用可否は不明です。AI前提の提案は避けてください。';
 
   const prompt = `あなたはCrowdWorksの提案文作成の専門家です。
@@ -704,98 +518,112 @@ async function generateProposals() {
 【報酬】${S.reward}
 【AI使用】${aiNote}
 
-Web検索ツールを使い、説得力を高める具体的な数字・事例・URLを調べてください。
+できれば Web 検索ツールで具体的な数字・事例・URLを調べてください（使えない場合は知識で補完）。
 
 以下のJSON形式のみで返してください（説明文不要）：
-{"proposals":[{"id":1,"angle":"見出し（30文字以内）","result":"クライアントが得る成果","evidence":"エビデンス（具体的数値含む）","evidence_url":"https://..."}]}`;
+{"proposals":[{"id":1,"angle":"見出し30文字以内","result":"クライアントが得る成果","evidence":"エビデンス（数値含む）","evidence_url":"https://..."}]}`;
 
   try {
-    const data = await apiCallWithSearch(prompt, S.abort.signal);
-    const json = parseJson(getText(data));
-    S.proposals = json.proposals ?? [];
+    // Web検索付きで試みる
+    document.getElementById('genMsg').textContent = '提案を生成中（Web検索含む）...';
+    const data = await callWithSearch(prompt, S.ctl.signal);
+    const j    = safeJson(getText(data));
+    S.proposals = j.proposals ?? [];
     renderProposals();
   } catch (e) {
     if (e.name === 'AbortError') return;
-    const el = document.getElementById('page3Err');
-    el.textContent = '提案の生成に失敗しました: ' + e.message;
-    el.classList.add('show');
+
+    // Web検索なしでリトライ
+    if (isSearchErr(e)) {
+      try {
+        document.getElementById('genMsg').textContent = '提案を生成中（検索なし）...';
+        const w = { id: 'p3Warn' };
+        const data2 = await callAPI({
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 3000,
+        }, S.ctl.signal);
+        const j2 = safeJson(getText(data2));
+        S.proposals = j2.proposals ?? [];
+        showWarn('p3Warn', '⚠ Web検索ツールが使えないため、AIの知識で提案を生成しました。');
+        renderProposals();
+      } catch (e2) {
+        if (e2.name !== 'AbortError') showErr('p3Err', '提案の生成に失敗しました: ' + friendlyErr(e2));
+      }
+    } else {
+      showErr('p3Err', '提案の生成に失敗しました: ' + friendlyErr(e));
+    }
   } finally {
-    document.getElementById('genLoader').classList.remove('show');
+    document.getElementById('genLoader').classList.remove('on');
     document.getElementById('cancelBtn').style.display = 'none';
-    document.getElementById('angleActions').style.display = 'flex';
+    document.getElementById('angleActs').style.display = 'flex';
   }
 }
 
+function showWarn(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.classList.add('on');
+}
+
+// Web検索エラーかどうか判定
+function isSearchErr(e) {
+  const m = e.message || '';
+  return m.includes('tool') || m.includes('search') || m.includes('400') || m.includes('not_found');
+}
+
 function renderProposals() {
-  const list = document.getElementById('proposalList');
+  const list = document.getElementById('pList');
   list.innerHTML = '';
+  if (!S.proposals.length) {
+    showErr('p3Err', '提案を生成できませんでした。案件情報を詳しく入力して再試行してください。');
+    return;
+  }
   S.proposals.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'p-card' + (S.selected.has(p.id) ? ' selected' : '');
+    const card = make('div', 'p-card' + (S.selected.has(p.id) ? ' sel' : ''));
     card.dataset.id = p.id;
 
-    const check = el('div', 'p-check', '✓');
+    const chk = make('div', 'p-chk'); chk.textContent = '✓';
 
-    const angle = el('div', 'p-angle');
-    angle.textContent = p.angle;
+    const angle = make('div', 'p-angle'); angle.textContent = p.angle;
+    const res   = make('div', 'p-result'); res.textContent = '📈 ' + p.result;
+    const evid  = make('div', 'p-evidence'); evid.textContent = '🔗 ' + p.evidence;
 
-    const result = el('div', 'p-result');
-    result.textContent = '📈 ' + p.result;
-
-    const evidence = el('div', 'p-evidence');
-    evidence.textContent = '🔗 ' + p.evidence;
-
-    const safeUrl = toHttpsUrl(p.evidence_url);
-    if (safeUrl) {
-      const a = document.createElement('a');
-      a.href = safeUrl;
-      a.textContent = safeUrl;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      evidence.append(' ', a);
+    const url = safeUrl(p.evidence_url);
+    if (url) {
+      const a = make('a'); a.href = url; a.textContent = url;
+      a.target = '_blank'; a.rel = 'noopener noreferrer';
+      evid.append(' ', a);
     }
 
-    card.append(check, angle, result, evidence);
-    card.addEventListener('click', () => toggleSelect(p.id, card));
+    card.append(chk, angle, res, evid);
+    card.onclick = () => {
+      if (S.selected.has(p.id)) { S.selected.delete(p.id); card.classList.remove('sel'); }
+      else                       { S.selected.add(p.id);    card.classList.add('sel'); }
+    };
     list.appendChild(card);
   });
 }
 
-function toggleSelect(id, card) {
-  if (S.selected.has(id)) {
-    S.selected.delete(id);
-    card.classList.remove('selected');
-  } else {
-    S.selected.add(id);
-    card.classList.add('selected');
-  }
-}
-
-// ========================================================
+// ─────────────────────────────────────────
 //  最終提案文生成
-// ========================================================
+// ─────────────────────────────────────────
 async function composeFinal() {
-  if (S.selected.size === 0) return alert('提案を1つ以上選んでください');
+  if (!S.selected.size) return alert('提案を1つ以上選んでください');
 
   const chosen = S.proposals.filter(p => S.selected.has(p.id));
 
   document.getElementById('composeBtn').disabled = true;
-  document.getElementById('finalSection').style.display = 'block';
-  document.getElementById('finalLoader').classList.add('show');
+  document.getElementById('finalWrap').style.display = 'block';
+  document.getElementById('finalLoader').classList.add('on');
   document.getElementById('finalText').value = '';
-  document.getElementById('copyMsg').textContent = '';
+  document.getElementById('copyOk').textContent = '';
   window.scrollTo(0, document.body.scrollHeight);
 
-  const aiNote = S.aiUsage === 'ok'
-    ? 'AIツールの活用を訴求してもよい。'
-    : 'AIツールへの言及は避ける。';
-
-  const angles = chosen.map(p =>
-    `・${p.angle}：${p.result}（${p.evidence}）`
-  ).join('\n');
+  const aiNote = S.ai === 'ok' ? 'AIツールの活用を訴求してよい。' : 'AIツールへの言及は避ける。';
+  const angles = chosen.map(p => `・${p.angle}：${p.result}（根拠：${p.evidence}）`).join('\n');
 
   const prompt = `あなたはCrowdWorksの提案文作成のプロです。
-以下の案件情報と選んだ提案アングルをもとに、受注確率の高い提案文を1本書いてください。
+以下の案件と提案アングルをもとに、受注確率の高い提案文を1本書いてください。
 
 【案件タイトル】${S.title}
 【業務内容】${S.content}
@@ -810,59 +638,50 @@ ${angles}
 - 具体的な数値・実績を盛り込む
 - 500〜700文字程度
 - 末尾は「よろしくお願いいたします」で締める
-- 回りくどい敬語は使わない
+- 過度な敬語・回りくどい表現は避ける
 
-提案文のみ出力してください。`;
+提案文のみ出力してください（説明文不要）。`;
 
-  S.abort = new AbortController();
+  S.ctl = new AbortController();
   document.getElementById('cancelBtn').style.display = 'inline-flex';
 
   try {
-    const data = await apiCall({ messages: [{ role: 'user', content: prompt }], max_tokens: 1500 }, S.abort.signal);
+    const data = await callAPI({ messages: [{ role: 'user', content: prompt }], max_tokens: 1600 }, S.ctl.signal);
     document.getElementById('finalText').value = getText(data);
   } catch (e) {
     if (e.name !== 'AbortError') {
-      document.getElementById('finalText').value = '生成に失敗しました: ' + e.message;
+      document.getElementById('finalText').value = '生成に失敗しました: ' + friendlyErr(e);
     }
   } finally {
-    document.getElementById('finalLoader').classList.remove('show');
+    document.getElementById('finalLoader').classList.remove('on');
     document.getElementById('cancelBtn').style.display = 'none';
     document.getElementById('composeBtn').disabled = false;
   }
 }
 
-async function copyText() {
-  const text = document.getElementById('finalText').value;
-  const msg  = document.getElementById('copyMsg');
-  try {
-    await navigator.clipboard.writeText(text);
-  } catch {
-    document.getElementById('finalText').select();
-    document.execCommand('copy');
-  }
-  msg.textContent = 'コピーしました！';
-  setTimeout(() => { msg.textContent = ''; }, 2500);
+async function doCopy() {
+  const txt = document.getElementById('finalText').value;
+  const ok  = document.getElementById('copyOk');
+  try { await navigator.clipboard.writeText(txt); }
+  catch { document.getElementById('finalText').select(); document.execCommand('copy'); }
+  ok.textContent = 'コピーしました！';
+  setTimeout(() => { ok.textContent = ''; }, 2500);
 }
 
 function backToAngles() {
-  document.getElementById('finalSection').style.display = 'none';
+  document.getElementById('finalWrap').style.display = 'none';
   document.getElementById('composeBtn').disabled = false;
   window.scrollTo(0, 0);
 }
 
-function cancelReq() {
-  S.abort?.abort();
-}
+function doCancel() { S.ctl?.abort(); }
 
-// ========================================================
+// ─────────────────────────────────────────
 //  API呼び出し
-// ========================================================
-
-// 通常の呼び出し
-async function apiCall(body, signal) {
+// ─────────────────────────────────────────
+async function callAPI(body, signal) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    signal,
+    method: 'POST', signal,
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': S.key,
@@ -873,66 +692,67 @@ async function apiCall(body, signal) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    const msg = err?.error?.message || `HTTP ${res.status}`;
+    throw new Error(msg);
   }
   return res.json();
 }
 
-// Web検索ツール付き。stop_reason=tool_use の間ループして end_turn まで継続する
-async function apiCallWithSearch(userPrompt, signal) {
-  const tools    = [{ type: 'web_search_20250305', name: 'web_search' }];
-  let messages   = [{ role: 'user', content: userPrompt }];
+// Web検索ツール付き。stop_reason=tool_use の間ループして end_turn まで待つ
+async function callWithSearch(prompt, signal) {
+  const tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+  let msgs = [{ role: 'user', content: prompt }];
 
-  while (true) {
-    const data = await apiCall({ tools, messages, max_tokens: 8000 }, signal);
-
+  for (let i = 0; i < 10; i++) {
+    const data = await callAPI({ tools, messages: msgs, max_tokens: 8000 }, signal);
     if (data.stop_reason !== 'tool_use') return data;
 
-    // tool_use ブロックを履歴に追加し、空の tool_result を返してターンを継続
     const results = data.content
       .filter(b => b.type === 'tool_use')
       .map(b => ({ type: 'tool_result', tool_use_id: b.id, content: '' }));
 
-    messages = [
-      ...messages,
+    msgs = [...msgs,
       { role: 'assistant', content: data.content },
       { role: 'user',      content: results },
     ];
   }
+  throw new Error('Web検索ループが上限に達しました');
 }
 
-// ========================================================
+// ─────────────────────────────────────────
 //  ユーティリティ
-// ========================================================
-
-// レスポンスからテキストを結合
+// ─────────────────────────────────────────
 function getText(data) {
-  return data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+  return (data.content ?? []).filter(b => b.type === 'text').map(b => b.text).join('');
 }
 
-// マークダウンフェンスと前後のテキストを除去して JSON をパース
-function parseJson(raw) {
+function safeJson(raw) {
   const s = raw.replace(/```(?:json)?/gi, '').trim();
-  const start = s.indexOf('{');
-  const end   = s.lastIndexOf('}');
-  if (start === -1 || end <= start) throw new Error('JSONが見つかりません');
-  return JSON.parse(s.slice(start, end + 1));
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a === -1 || b <= a) throw new Error('JSONが見つかりません: ' + s.slice(0, 80));
+  return JSON.parse(s.slice(a, b + 1));
 }
 
-// https: URL のみ許可
-function toHttpsUrl(raw) {
+function safeUrl(raw) {
   if (!raw) return null;
-  try {
-    const u = new URL(raw);
-    return u.protocol === 'https:' ? u.href : null;
-  } catch { return null; }
+  try { const u = new URL(raw); return u.protocol === 'https:' ? u.href : null; }
+  catch { return null; }
 }
 
-// 要素生成ショートハンド
-function el(tag, cls, text) {
+// エラーをユーザー向けに変換
+function friendlyErr(e) {
+  const m = e.message || '';
+  if (m.includes('401') || m.includes('auth'))          return 'APIキーが無効です。正しいキーを確認してください。';
+  if (m.includes('403'))                                 return 'このAPIキーでは操作が許可されていません。';
+  if (m.includes('429') || m.includes('rate'))          return 'API使用量の上限に達しました。しばらく待ってから再試行してください。';
+  if (m.includes('500') || m.includes('overloaded'))    return 'Anthropicのサーバーが混雑しています。しばらく待ってから再試行してください。';
+  if (m.includes('Failed to fetch') || m.includes('NetworkError')) return 'ネットワーク接続を確認してください。';
+  return m;
+}
+
+function make(tag, cls) {
   const e = document.createElement(tag);
-  if (cls)  e.className   = cls;
-  if (text) e.textContent = text;
+  if (cls) e.className = cls;
   return e;
 }
 </script>
