@@ -102,6 +102,19 @@
     .btn-block          { width: 100%; padding: 13px; font-size: .95rem; margin-top: 4px; }
     .btn-sm             { padding: 7px 12px; font-size: .8rem; }
 
+    /* APIキー保存ステータス */
+    .key-status {
+      display: flex; align-items: center; gap: 6px;
+      font-size: .75rem; margin-top: 8px;
+      color: var(--muted);
+    }
+    .key-status .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--border); flex-shrink: 0;
+    }
+    .key-status.saved .dot  { background: var(--success); }
+    .key-status.saved       { color: var(--success); }
+
     /* AI使用可否ピル */
     .pills { display: flex; gap: 8px; }
     .pill {
@@ -209,7 +222,6 @@
     }
     .back-btn:hover { color: var(--text); }
     .note { font-size: .75rem; color: var(--muted); margin-top: 7px; line-height: 1.5; }
-    .note.warn { color: var(--warn); }
 
     .page { display: none; }
     .page.active { display: block; }
@@ -241,12 +253,16 @@
         <div class="row">
           <input type="password" id="keyInput" placeholder="sk-ant-api03-..."
             autocomplete="off" onkeydown="if(event.key==='Enter')step1Next()">
-          <button class="btn btn-outline-danger btn-sm" onclick="clearKey()">削除</button>
+          <button class="btn btn-outline-danger btn-sm" id="clearBtn" onclick="clearKey()" style="display:none;">消去</button>
         </div>
-        <p class="note warn">⚠ キーはこのタブを閉じると消えます（sessionStorage に一時保存）</p>
+        <!-- 保存ステータス表示 -->
+        <div class="key-status" id="keyStatus">
+          <div class="dot"></div>
+          <span id="keyStatusText">未登録</span>
+        </div>
       </div>
       <div class="alert alert-err" id="keyErr"></div>
-      <div class="alert alert-ok"  id="keyOk">✓ 接続確認 OK</div>
+      <div class="alert alert-ok"  id="keyOk">✓ 接続確認 OK — APIキーを自動登録しました</div>
     </div>
     <button class="btn btn-primary btn-block" id="step1Btn" onclick="step1Next()">
       接続確認して次へ →
@@ -378,12 +394,18 @@ const S = {
   ctl: null,
 };
 
+const STORAGE_KEY = 'anth_key';
+
 // ─────────────────────────────────────────
 //  初期化
 // ─────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  const k = sessionStorage.getItem('anth_key');
-  if (k) { document.getElementById('keyInput').value = k; S.key = k; }
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    document.getElementById('keyInput').value = saved;
+    S.key = saved;
+    setKeyStatus(true);
+  }
   setAi('unknown');
 
   document.getElementById('refineChips').addEventListener('click', e => {
@@ -391,6 +413,24 @@ window.addEventListener('DOMContentLoaded', () => {
     if (chip) chip.classList.toggle('on');
   });
 });
+
+// ─────────────────────────────────────────
+//  APIキー保存ステータス表示
+// ─────────────────────────────────────────
+function setKeyStatus(saved) {
+  const el   = document.getElementById('keyStatus');
+  const text = document.getElementById('keyStatusText');
+  const btn  = document.getElementById('clearBtn');
+  if (saved) {
+    el.classList.add('saved');
+    text.textContent = 'ブラウザに登録済み（次回から自動入力されます）';
+    btn.style.display = 'inline-flex';
+  } else {
+    el.classList.remove('saved');
+    text.textContent = '未登録';
+    btn.style.display = 'none';
+  }
+}
 
 // ─────────────────────────────────────────
 //  ページ遷移
@@ -407,7 +447,7 @@ function goTo(n) {
 }
 
 // ─────────────────────────────────────────
-//  Step 1: APIキー接続確認
+//  Step 1: APIキー接続確認 → 自動登録
 // ─────────────────────────────────────────
 async function step1Next() {
   const key = document.getElementById('keyInput').value.trim();
@@ -422,9 +462,11 @@ async function step1Next() {
 
   try {
     await callAPI({ messages: [{ role: 'user', content: 'Hi' }], max_tokens: 5 });
-    sessionStorage.setItem('anth_key', key);
+    // 接続成功 → localStorage に自動登録
+    localStorage.setItem(STORAGE_KEY, key);
+    setKeyStatus(true);
     show('keyOk');
-    setTimeout(() => goTo(2), 600);
+    setTimeout(() => goTo(2), 800);
   } catch (e) {
     showErr('keyErr', 'APIキーの確認に失敗しました: ' + friendlyErr(e));
     S.key = '';
@@ -434,10 +476,11 @@ async function step1Next() {
 }
 
 function clearKey() {
-  sessionStorage.removeItem('anth_key');
+  localStorage.removeItem(STORAGE_KEY);
   document.getElementById('keyInput').value = '';
   S.key = '';
   hide('keyErr'); hide('keyOk');
+  setKeyStatus(false);
 }
 
 // ─────────────────────────────────────────
