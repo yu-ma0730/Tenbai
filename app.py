@@ -4,6 +4,9 @@ import os
 import re
 import urllib.parse
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -188,6 +191,28 @@ def analyze_product():
         "suppliers": suppliers,
         "price_comparison": price_comparison,
     })
+
+
+@app.route("/webhook", methods=["POST"])
+def line_webhook():
+    from api.line_bot import verify_signature, handle_event
+
+    body = request.get_data()
+    signature = request.headers.get("X-Line-Signature", "")
+
+    if not verify_signature(body, signature):
+        return jsonify({"error": "invalid signature"}), 403
+
+    data = json.loads(body)
+    cta_url = os.environ.get("CTA_URL", "https://example.com")
+
+    for event in data.get("events", []):
+        try:
+            handle_event(event, cta_url)
+        except Exception as e:
+            app.logger.error(f"Event handling error: {e}")
+
+    return jsonify({"status": "ok"})
 
 
 if __name__ == "__main__":
