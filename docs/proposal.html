@@ -323,7 +323,7 @@
 <script>
 const S = {
   key: '',
-  imgB64: '', imgType: '',
+  imgB64: '', imgType: '', imgCanvas: null,
   title: '', content: '', reward: '', condition: '',
   ai: 'unknown',
   proposals: [], selected: new Set(),
@@ -483,22 +483,23 @@ function onImg(e) {
   reader.onload = ev => {
     const img = new Image();
     img.onload = () => {
-      // 長辺を1568px以下に収める（Anthropic推奨上限）
-      const LIMIT = 1568;
+      // 幅を1000px以下に固定し、高さは比率維持（縦長ページ対応）
+      const MAX_W = 1000;
       let w = img.naturalWidth;
       let h = img.naturalHeight;
-      if (w > LIMIT || h > LIMIT) {
-        const scale = LIMIT / Math.max(w, h);
-        w = Math.floor(w * scale);
-        h = Math.floor(h * scale);
+      if (w > MAX_W) {
+        h = Math.floor(h * MAX_W / w);
+        w = MAX_W;
       }
       const canvas = document.createElement('canvas');
       canvas.width  = w;
       canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.90);
-      S.imgB64  = dataUrl.split(',')[1];
-      S.imgType = 'image/jpeg';
+      // フル画像を保存（プレビュー用）
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+      S.imgB64      = dataUrl.split(',')[1];
+      S.imgType     = 'image/jpeg';
+      S.imgCanvas   = canvas; // 分割用に保持
       const prev = document.getElementById('imgPreview');
       prev.src = dataUrl;
       prev.style.display = 'block';
@@ -510,24 +511,56 @@ function onImg(e) {
   reader.readAsDataURL(file);
 }
 
-// ─── 画像から情報抽出 ───
+// 画像を縦3分割してbase64リストを返す
+function splitImage(canvas, parts) {
+  const w   = canvas.width;
+  const h   = canvas.height;
+  const seg  = Math.ceil(h / parts);
+  const list = [];
+  for (let i = 0; i < parts; i++) {
+    const sy    = i * seg;
+    const sh    = Math.min(seg, h - sy);
+    if (sh <= 0) break;
+    const c     = document.createElement('canvas');
+    c.width     = w;
+    c.height    = sh;
+    c.getContext('2d').drawImage(canvas, 0, sy, w, sh, 0, 0, w, sh);
+    list.push(c.toDataURL('image/jpeg', 0.88).split(',')[1]);
+  }
+  return list;
+}
+
+// ─── 画像から情報抽出（3分割して送信） ───
 async function extractImg() {
   if (!S.imgB64) return;
   document.getElementById('extractLoader').classList.add('on');
   document.getElementById('extractWrap').style.display = 'none';
   hide('imgErr');
   try {
+    const canvas = S.imgCanvas;
+    // 縦長画像は3分割、そうでなければ1枚のまま
+    const parts  = canvas.height > canvas.width * 1.5 ? 3 : 1;
+    const slices = parts > 1 ? splitImage(canvas, parts) : [S.imgB64];
+
+    // 分割画像を全てimageブロックとして送る
+    const imgBlocks = slices.map(b64 => ({
+      type: 'image',
+      source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+    }));
+
     const data = await callAPI({
       messages: [{
         role: 'user',
         content: [
-          { type: 'image', source: { type: 'base64', media_type: S.imgType, data: S.imgB64 } },
-          { type: 'text', text: `このCrowdWorksの案件スクリーンショットから情報をJSON形式のみで返してください。
+          ...imgBlocks,
+          { type: 'text', text: `これらはCrowdWorksの案件ページのスクリーンショット（縦に分割したもの）です。
+全ての画像を合わせて読み、以下のJSON形式のみで返してください。
 見当たらない項目は空文字。ai_usage は "ok"/"ng"/"unknown" のいずれか。
+業務内容（content）は省略せず詳細に抽出してください。
 {"title":"","content":"","reward":"","ai_usage":""}` }
         ]
       }],
-      max_tokens: 1200,
+      max_tokens: 2000,
     });
     const j = safeJson(getText(data));
     if (j.title)    document.getElementById('fTitle').value   = j.title;
