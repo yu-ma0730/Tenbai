@@ -5,7 +5,26 @@ import re
 import urllib.parse
 from datetime import datetime
 
+from sns import scheduler
+from sns.base import PostContent
+
 app = Flask(__name__)
+
+
+# ---- SNS 認証情報（環境変数から読み込む） ----
+def _get_credentials(platform: str) -> dict:
+    if platform == "instagram":
+        return {
+            "access_token": os.getenv("INSTAGRAM_ACCESS_TOKEN", ""),
+            "account_id": os.getenv("INSTAGRAM_ACCOUNT_ID", ""),
+        }
+    if platform == "tiktok":
+        return {
+            "access_token": os.getenv("TIKTOK_ACCESS_TOKEN", ""),
+            "client_key": os.getenv("TIKTOK_CLIENT_KEY", ""),
+            "client_secret": os.getenv("TIKTOK_CLIENT_SECRET", ""),
+        }
+    return {}
 
 # 登録済み商品データ（本番ではDBに保存）
 registered_products = []
@@ -190,5 +209,97 @@ def analyze_product():
     })
 
 
+# ---- SNS 投稿 API ----
+
+@app.route("/api/sns/platforms", methods=["GET"])
+def sns_platforms():
+    """対応プラットフォームの一覧と接続状態を返す"""
+    from sns import InstagramPoster, TikTokPoster
+    platforms = []
+    for name, cls in [("instagram", InstagramPoster), ("tiktok", TikTokPoster)]:
+        creds = _get_credentials(name)
+        poster = cls(creds)
+        platforms.append({
+            "name": name,
+            "ready": poster.authenticate(),
+            "credentials_set": all(creds.values()),
+        })
+    return jsonify({"success": True, "platforms": platforms})
+
+
+@app.route("/api/sns/post", methods=["POST"])
+def sns_post():
+    """即時投稿"""
+    data = request.get_json()
+    platform = data.get("platform", "")
+    caption = data.get("caption", "")
+    hashtags = data.get("hashtags", [])
+    media_path = data.get("media_path")
+
+    if not platform or not caption:
+        return jsonify({"success": False, "error": "platform と caption は必須です"}), 400
+
+    content = PostContent(caption=caption, hashtags=hashtags, media_path=media_path)
+    credentials = _get_credentials(platform)
+
+    try:
+        record = scheduler.add_post(platform, content, credentials)
+        return jsonify({"success": True, "post": record})
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+
+@app.route("/api/sns/schedule", methods=["POST"])
+def sns_schedule():
+    """予約投稿"""
+    data = request.get_json()
+    platform = data.get("platform", "")
+    caption = data.get("caption", "")
+    hashtags = data.get("hashtags", [])
+    media_path = data.get("media_path")
+    scheduled_at_str = data.get("scheduled_at", "")
+
+    if not platform or not caption or not scheduled_at_str:
+        return jsonify({"success": False, "error": "platform, caption, scheduled_at は必須です"}), 400
+
+    try:
+        scheduled_at = datetime.fromisoformat(scheduled_at_str)
+    except ValueError:
+        return jsonify({"success": False, "error": "scheduled_at の形式が不正です（ISO 8601）"}), 400
+
+    content = PostContent(
+        caption=caption,
+        hashtags=hashtags,
+        media_path=media_path,
+        scheduled_at=scheduled_at,
+    )
+    credentials = _get_credentials(platform)
+
+    try:
+        record = scheduler.add_post(platform, content, credentials, scheduled_at=scheduled_at)
+        return jsonify({"success": True, "post": record})
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+
+
+@app.route("/api/sns/posts", methods=["GET"])
+def sns_posts():
+    """投稿一覧を返す"""
+    return jsonify({"success": True, "posts": scheduler.get_all_posts()})
+
+
+@app.route("/api/sns/posts/<post_id>", methods=["DELETE"])
+def sns_cancel_post(post_id):
+    """予約投稿をキャンセルする"""
+    cancelled = scheduler.cancel_post(post_id)
+    if cancelled:
+        return jsonify({"success": True})
+    return jsonify({"success": False, "error": "キャンセルできませんでした（存在しないか既に完了済み）"}), 404
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    scheduler.start()
+    try:
+        app.run(debug=True, port=5000)
+    finally:
+        scheduler.shutdown()
