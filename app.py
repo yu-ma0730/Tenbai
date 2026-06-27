@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, jsonify
 import json
 import os
 import re
+import random
+import math
 import urllib.parse
 from datetime import datetime
 
@@ -187,6 +189,130 @@ def analyze_product():
         "keyword": keyword,
         "suppliers": suppliers,
         "price_comparison": price_comparison,
+    })
+
+
+@app.route("/fx")
+def fx_signals():
+    return render_template("fx.html")
+
+
+# FX基準価格（サーバー側で管理してリアルなドリフトを再現）
+_fx_prices = {
+    "USDJPY": 157.50,
+    "EURUSD": 1.0820,
+    "EURJPY": 170.40,
+    "XAUUSD": 3285.0,
+}
+
+_PIP = {"USDJPY": 0.01, "EURUSD": 0.0001, "EURJPY": 0.01, "XAUUSD": 0.1}
+_DEC = {"USDJPY": 3, "EURUSD": 5, "EURJPY": 3, "XAUUSD": 2}
+_SL_PIPS = {"USDJPY": 8, "EURUSD": 8, "EURJPY": 10, "XAUUSD": 20}
+
+
+def _generate_candles(pair, bars=60):
+    price = _fx_prices[pair]
+    pip = _PIP[pair]
+    vol = pip * 5
+    candles = []
+    for _ in range(bars):
+        open_ = price
+        move = (random.random() - 0.49) * vol * 8
+        close = open_ + move
+        high = max(open_, close) + random.random() * vol * 2
+        low  = min(open_, close) - random.random() * vol * 2
+        candles.append({"open": open_, "high": high, "low": low, "close": close})
+        price = close
+    _fx_prices[pair] = price
+    return candles
+
+
+def _ema(closes, period):
+    k = 2 / (period + 1)
+    val = closes[0]
+    for c in closes[1:]:
+        val = c * k + val * (1 - k)
+    return val
+
+
+def _rsi(closes, period=14):
+    if len(closes) < period + 1:
+        return 50.0
+    gains, losses = 0.0, 0.0
+    for i in range(1, period + 1):
+        diff = closes[i] - closes[i - 1]
+        if diff > 0:
+            gains += diff
+        else:
+            losses -= diff
+    avg_gain = gains / period
+    avg_loss = losses / period
+    for i in range(period + 1, len(closes)):
+        diff = closes[i] - closes[i - 1]
+        g = diff if diff > 0 else 0
+        l = -diff if diff < 0 else 0
+        avg_gain = (avg_gain * (period - 1) + g) / period
+        avg_loss = (avg_loss * (period - 1) + l) / period
+    if avg_loss == 0:
+        return 100.0
+    rs = avg_gain / avg_loss
+    return round(100 - (100 / (1 + rs)), 1)
+
+
+def _calc_signal(pair):
+    candles = _generate_candles(pair, 60)
+    closes = [c["close"] for c in candles]
+    prev_closes = closes[:-1]
+
+    ema9  = _ema(closes, 9)
+    ema21 = _ema(closes, 21)
+    ema9p = _ema(prev_closes, 9)
+    ema21p = _ema(prev_closes, 21)
+    rsi_val = _rsi(closes, 14)
+
+    pip = _PIP[pair]
+    sl_dist = _SL_PIPS[pair] * pip
+    tp1_dist = sl_dist * 1.5
+    tp2_dist = sl_dist * 2.0
+
+    entry = closes[-1]
+    bull_cross = ema9p <= ema21p and ema9 > ema21
+    bear_cross = ema9p >= ema21p and ema9 < ema21
+    rand = random.random()
+
+    signal = "NEUTRAL"
+    if (bull_cross and 40 < rsi_val < 65) or (ema9 > ema21 and 45 < rsi_val < 60 and rand < 0.35):
+        signal = "BUY"
+    elif (bear_cross and 35 < rsi_val < 60) or (ema9 < ema21 and 40 < rsi_val < 55 and rand < 0.35):
+        signal = "SELL"
+
+    pct_change = (closes[-1] - closes[-6]) / closes[-6] * 100
+
+    return {
+        "pair": pair,
+        "signal": signal,
+        "entry": round(entry, _DEC[pair]),
+        "sl": round(entry - sl_dist if signal == "BUY" else entry + sl_dist, _DEC[pair]),
+        "tp1": round(entry + tp1_dist if signal == "BUY" else entry - tp1_dist, _DEC[pair]),
+        "tp2": round(entry + tp2_dist if signal == "BUY" else entry - tp2_dist, _DEC[pair]),
+        "ema9": round(ema9, _DEC[pair]),
+        "ema21": round(ema21, _DEC[pair]),
+        "rsi": rsi_val,
+        "pctChange": round(pct_change, 4),
+    }
+
+
+@app.route("/api/fx/signals", methods=["POST"])
+def fx_signals_api():
+    data = request.get_json()
+    pairs = data.get("pairs", ["USDJPY", "EURUSD", "EURJPY", "XAUUSD"])
+    tf = data.get("tf", 5)
+    signals = [_calc_signal(p) for p in pairs if p in _fx_prices]
+    return jsonify({
+        "success": True,
+        "signals": signals,
+        "tf": tf,
+        "updated_at": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
     })
 
 

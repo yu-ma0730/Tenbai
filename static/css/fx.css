@@ -1,0 +1,584 @@
+/* FX Signal Tool Styles */
+
+.fx-body {
+  background: #0a0e1a;
+  color: #e0e6f0;
+}
+
+/* ヘッダー */
+.fx-header {
+  background: linear-gradient(135deg, #0a0e1a 0%, #0d1528 60%, #0f2040 100%);
+  border-bottom: 1px solid #1e3a5f;
+}
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+.fx-logo {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+.fx-tagline {
+  font-size: 12px;
+  color: #4a6fa5;
+}
+.header-nav {
+  display: flex;
+  gap: 8px;
+}
+.nav-link {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #6b8bb0;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.nav-link:hover { color: #90b0d8; background: rgba(255,255,255,0.05); }
+.nav-link.active { color: #60a5fa; background: rgba(59,130,246,0.15); font-weight: 600; }
+
+/* メインコンテナ */
+.fx-container {
+  max-width: 1200px;
+  margin: 24px auto;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* コントロールバー */
+.fx-control-bar {
+  background: #0f1729;
+  border: 1px solid #1e3a5f;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.control-left, .control-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.control-label {
+  font-size: 11px;
+  color: #4a6fa5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.tf-group, .pair-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tf-buttons, .pair-buttons {
+  display: flex;
+  gap: 4px;
+}
+.tf-btn, .pair-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #1e3a5f;
+  background: transparent;
+  color: #6b8bb0;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tf-btn:hover, .pair-btn:hover {
+  border-color: #3b82f6;
+  color: #93c5fd;
+}
+.tf-btn.active {
+  background: rgba(59,130,246,0.2);
+  border-color: #3b82f6;
+  color: #60a5fa;
+  font-weight: 600;
+}
+.pair-btn.active {
+  background: rgba(59,130,246,0.15);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+.pair-btn.buy-active {
+  background: rgba(59,130,246,0.2);
+  border-color: #3b82f6;
+  color: #60a5fa;
+}
+.pair-btn.sell-active {
+  background: rgba(239,68,68,0.15);
+  border-color: #ef4444;
+  color: #f87171;
+}
+
+/* 自動更新 */
+.auto-refresh {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #6b8bb0;
+}
+.toggle-label input { display: none; }
+.toggle-slider {
+  width: 36px;
+  height: 20px;
+  background: #1e3a5f;
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.3s;
+}
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 14px; height: 14px;
+  background: #4a6fa5;
+  border-radius: 50%;
+  transition: transform 0.3s, background 0.3s;
+}
+.toggle-label input:checked + .toggle-slider { background: rgba(59,130,246,0.3); }
+.toggle-label input:checked + .toggle-slider::after {
+  transform: translateX(16px);
+  background: #3b82f6;
+}
+.next-update-text {
+  font-size: 11px;
+  color: #4a6fa5;
+}
+.btn-refresh {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: rgba(59,130,246,0.2);
+  border: 1px solid #3b82f6;
+  border-radius: 8px;
+  color: #60a5fa;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-refresh:hover { background: rgba(59,130,246,0.35); }
+.btn-refresh.spinning svg { animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* サマリー */
+.fx-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.summary-card {
+  background: #0f1729;
+  border: 1px solid #1e3a5f;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.summary-icon {
+  font-size: 22px;
+}
+.buy-summary .summary-icon { color: #3b82f6; }
+.sell-summary .summary-icon { color: #ef4444; }
+.neutral-summary .summary-icon { color: #f59e0b; }
+.time-summary .summary-icon { color: #6b8bb0; }
+.summary-count {
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+}
+.buy-summary .summary-count { color: #60a5fa; }
+.sell-summary .summary-count { color: #f87171; }
+.neutral-summary .summary-count { color: #fbbf24; }
+.time-summary .summary-count { color: #90b0d8; font-size: 20px; }
+.summary-label {
+  font-size: 12px;
+  color: #4a6fa5;
+  margin-top: 2px;
+}
+
+/* シグナルグリッド */
+.signals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 768px) {
+  .signals-grid { grid-template-columns: 1fr; }
+  .fx-summary { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* シグナルカード */
+.signal-card {
+  background: #0f1729;
+  border: 1px solid #1e3a5f;
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.signal-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.signal-card.buy-card { border-color: rgba(59,130,246,0.4); }
+.signal-card.sell-card { border-color: rgba(239,68,68,0.4); }
+.signal-card.neutral-card { border-color: rgba(245,158,11,0.3); }
+
+/* カードヘッダー */
+.card-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.buy-card .card-header { background: linear-gradient(90deg, rgba(59,130,246,0.2), transparent); }
+.sell-card .card-header { background: linear-gradient(90deg, rgba(239,68,68,0.2), transparent); }
+.neutral-card .card-header { background: linear-gradient(90deg, rgba(245,158,11,0.1), transparent); }
+
+.pair-name {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+.buy-card .pair-name { color: #60a5fa; }
+.sell-card .pair-name { color: #f87171; }
+.neutral-card .pair-name { color: #fbbf24; }
+
+.signal-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.buy-badge {
+  background: rgba(59,130,246,0.2);
+  border: 1px solid rgba(59,130,246,0.5);
+  color: #60a5fa;
+}
+.sell-badge {
+  background: rgba(239,68,68,0.2);
+  border: 1px solid rgba(239,68,68,0.5);
+  color: #f87171;
+}
+.neutral-badge {
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.4);
+  color: #fbbf24;
+}
+.badge-arrow {
+  font-size: 10px;
+}
+
+/* 現在価格エリア */
+.price-area {
+  padding: 8px 18px 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.current-price {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: 'Courier New', monospace;
+  color: #e0e6f0;
+}
+.price-change {
+  font-size: 13px;
+  font-weight: 600;
+}
+.price-change.pos { color: #60a5fa; }
+.price-change.neg { color: #f87171; }
+
+/* RR表示エリア */
+.rr-area {
+  padding: 12px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rr-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rr-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.rr-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.entry-label { color: #90b0d8; }
+.sl-label { color: #fb923c; }
+.tp1-label { color: #34d399; }
+.tp2-label { color: #4ade80; }
+
+.rr-price-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+
+/* ビジュアルバー */
+.rr-visual {
+  margin: 4px 0 8px;
+  position: relative;
+}
+.rr-track {
+  height: 6px;
+  background: #1e3a5f;
+  border-radius: 3px;
+  position: relative;
+  overflow: visible;
+}
+/* 買いシグナルのバー */
+.buy-card .tp2-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6, #4ade80);
+}
+.buy-card .tp1-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #1d4ed8, #3b82f6, #34d399);
+}
+.buy-card .sl-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #ef4444, #fb923c);
+  right: 0;
+}
+/* 売りシグナルのバー */
+.sell-card .tp2-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #dc2626, #ef4444, #4ade80);
+}
+.sell-card .tp1-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #dc2626, #ef4444, #34d399);
+}
+.sell-card .sl-bar-fill {
+  position: absolute;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #3b82f6, #60a5fa);
+  right: 0;
+}
+
+/* マーカー */
+.rr-markers {
+  position: relative;
+  height: 20px;
+  margin-top: 2px;
+}
+.rr-marker {
+  position: absolute;
+  font-size: 9px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+.entry-marker { color: #90b0d8; }
+.sl-marker { color: #fb923c; }
+.tp1-marker { color: #34d399; }
+.tp2-marker { color: #4ade80; }
+
+/* 価格テーブル */
+.price-table {
+  margin: 4px 0;
+}
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid #1a2a45;
+}
+.price-row:last-child { border-bottom: none; }
+.price-row-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.entry-row .price-row-label { color: #90b0d8; }
+.sl-row .price-row-label { color: #fb923c; }
+.tp1-row .price-row-label { color: #34d399; }
+.tp2-row .price-row-label { color: #4ade80; }
+.price-row-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+}
+.entry-row .price-row-val { color: #e0e6f0; }
+.sl-row .price-row-val { color: #fb923c; }
+.tp1-row .price-row-val { color: #34d399; }
+.tp2-row .price-row-val { color: #4ade80; }
+
+.rr-badge-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.rr-badge {
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rr-badge-15 {
+  background: rgba(52,211,153,0.15);
+  border: 1px solid rgba(52,211,153,0.4);
+  color: #34d399;
+}
+.rr-badge-20 {
+  background: rgba(74,222,128,0.15);
+  border: 1px solid rgba(74,222,128,0.4);
+  color: #4ade80;
+}
+
+/* インジケーター表示 */
+.indicators-row {
+  padding: 10px 18px 14px;
+  display: flex;
+  gap: 10px;
+  border-top: 1px solid #1a2a45;
+  flex-wrap: wrap;
+}
+.indicator-chip {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.ema-chip {
+  background: rgba(139,92,246,0.15);
+  border: 1px solid rgba(139,92,246,0.3);
+  color: #a78bfa;
+}
+.rsi-chip-bull {
+  background: rgba(59,130,246,0.15);
+  border: 1px solid rgba(59,130,246,0.3);
+  color: #60a5fa;
+}
+.rsi-chip-bear {
+  background: rgba(239,68,68,0.15);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+}
+.rsi-chip-neutral {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: #fbbf24;
+}
+.tf-chip {
+  background: rgba(30,58,95,0.6);
+  border: 1px solid #1e3a5f;
+  color: #6b8bb0;
+}
+
+/* 凡例 */
+.fx-legend {
+  background: #0f1729;
+  border: 1px solid #1e3a5f;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.legend-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4a6fa5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+.legend-items {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b8bb0;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+.buy-dot { background: #3b82f6; }
+.sell-dot { background: #ef4444; }
+.legend-bar {
+  width: 20px;
+  height: 4px;
+  border-radius: 2px;
+}
+.sl-bar { background: #fb923c; }
+.tp1-bar { background: #34d399; }
+.tp2-bar { background: #4ade80; }
+.legend-note {
+  font-size: 11px;
+  color: #2d4a6e;
+  margin-top: 4px;
+}
+
+/* ローディング */
+.loading-card {
+  background: #0f1729;
+  border: 1px solid #1e3a5f;
+  border-radius: 14px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #4a6fa5;
+  font-size: 14px;
+}
+.loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #1e3a5f;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}

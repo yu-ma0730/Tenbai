@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FXスキャルピング シグナルツール</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/fx.css">
+</head>
+<body class="fx-body">
+  <header class="header fx-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <span class="fx-logo">FX Signal</span>
+        <span class="fx-tagline">スキャルピング シグナルツール</span>
+      </div>
+      <nav class="header-nav">
+        <a href="/" class="nav-link">物販ツール</a>
+        <a href="/fx" class="nav-link active">FXシグナル</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="fx-container">
+
+    <!-- コントロールバー -->
+    <section class="fx-control-bar">
+      <div class="control-left">
+        <div class="tf-group">
+          <span class="control-label">時間足</span>
+          <div class="tf-buttons">
+            <button class="tf-btn" data-tf="1">1分</button>
+            <button class="tf-btn active" data-tf="5">5分</button>
+            <button class="tf-btn" data-tf="15">15分</button>
+          </div>
+        </div>
+        <div class="pair-group">
+          <span class="control-label">通貨ペア</span>
+          <div class="pair-buttons">
+            <button class="pair-btn active" data-pair="USDJPY">USD/JPY</button>
+            <button class="pair-btn active" data-pair="EURUSD">EUR/USD</button>
+            <button class="pair-btn active" data-pair="EURJPY">EUR/JPY</button>
+            <button class="pair-btn active" data-pair="XAUUSD">GOLD</button>
+          </div>
+        </div>
+      </div>
+      <div class="control-right">
+        <div class="auto-refresh">
+          <label class="toggle-label">
+            <input type="checkbox" id="auto-refresh-toggle" checked>
+            <span class="toggle-slider"></span>
+            <span>自動更新</span>
+          </label>
+          <span id="next-update" class="next-update-text">30秒後更新</span>
+        </div>
+        <button class="btn-refresh" id="refresh-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          更新
+        </button>
+      </div>
+    </section>
+
+    <!-- シグナルサマリー -->
+    <section class="fx-summary">
+      <div class="summary-card buy-summary">
+        <div class="summary-icon">▲</div>
+        <div class="summary-info">
+          <div class="summary-count" id="buy-count">0</div>
+          <div class="summary-label">買いシグナル</div>
+        </div>
+      </div>
+      <div class="summary-card sell-summary">
+        <div class="summary-icon">▼</div>
+        <div class="summary-info">
+          <div class="summary-count" id="sell-count">0</div>
+          <div class="summary-label">売りシグナル</div>
+        </div>
+      </div>
+      <div class="summary-card neutral-summary">
+        <div class="summary-icon">◆</div>
+        <div class="summary-info">
+          <div class="summary-count" id="neutral-count">0</div>
+          <div class="summary-label">様子見</div>
+        </div>
+      </div>
+      <div class="summary-card time-summary">
+        <div class="summary-icon">⏱</div>
+        <div class="summary-info">
+          <div class="summary-count" id="last-update-time">--:--</div>
+          <div class="summary-label">最終更新</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- シグナルカード一覧 -->
+    <div class="signals-grid" id="signals-grid">
+      <!-- JSで動的生成 -->
+    </div>
+
+    <!-- 凡例 -->
+    <section class="fx-legend">
+      <div class="legend-title">表示ガイド</div>
+      <div class="legend-items">
+        <div class="legend-item">
+          <span class="legend-dot buy-dot"></span>
+          <span>買いエントリー</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-dot sell-dot"></span>
+          <span>売りエントリー</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-bar sl-bar"></span>
+          <span>ストップロス (SL)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-bar tp1-bar"></span>
+          <span>利確1 TP1 (RR 1:1.5)</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-bar tp2-bar"></span>
+          <span>利確2 TP2 (RR 1:2.0)</span>
+        </div>
+      </div>
+      <div class="legend-note">
+        ※ EMA(9/21)クロス + RSI(14)によるシグナル判定。スキャルピング向け参考情報です。投資判断はご自身でお願いします。
+      </div>
+    </section>
+
+  </main>
+
+  <script src="/static/js/fx.js"></script>
+</body>
+</html>
