@@ -351,6 +351,7 @@ function fetchSignals() {
       grid.innerHTML = signals.map(renderSignalCard).join('');
       updateSummary(signals);
       updatePairButtonColors(signals);
+      updateConnectionBadge(data.mt5_connected);
     })
     .catch(() => {
       grid.innerHTML = '<div class="loading-card" style="color:#f87171;">データ取得エラー。再度お試しください。</div>';
@@ -413,6 +414,22 @@ document.getElementById('auto-refresh-toggle').addEventListener('change', e => {
   if (autoRefreshEnabled) startCountdown();
   else clearInterval(countdownTimer);
 });
+
+function updateConnectionBadge(connected) {
+  let badge = document.getElementById('mt5-badge');
+  if (!badge) return;
+  if (connected) {
+    badge.textContent = '● MT5 接続中';
+    badge.style.color = '#4ade80';
+    badge.style.borderColor = 'rgba(74,222,128,0.4)';
+    badge.style.background = 'rgba(74,222,128,0.1)';
+  } else {
+    badge.textContent = '○ シミュレーション';
+    badge.style.color = '#fbbf24';
+    badge.style.borderColor = 'rgba(251,191,36,0.4)';
+    badge.style.background = 'rgba(251,191,36,0.08)';
+  }
+}
 
 // 初期ロード
 fetchSignals();

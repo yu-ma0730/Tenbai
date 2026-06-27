@@ -197,7 +197,41 @@ def fx_signals():
     return render_template("fx.html")
 
 
-# FX基準価格（サーバー側で管理してリアルなドリフトを再現）
+# XM Standard口座のシンボル名マッピング
+_MT5_SYMBOLS = {
+    "USDJPY": "USDJPY",
+    "EURUSD": "EURUSD",
+    "EURJPY": "EURJPY",
+    "XAUUSD": "XAUUSD",
+}
+
+_PIP = {"USDJPY": 0.01, "EURUSD": 0.0001, "EURJPY": 0.01, "XAUUSD": 0.1}
+_DEC = {"USDJPY": 3, "EURUSD": 5, "EURJPY": 3, "XAUUSD": 2}
+_SL_PIPS = {"USDJPY": 8, "EURUSD": 8, "EURJPY": 10, "XAUUSD": 20}
+
+# MT5接続フラグ（起動時に自動判定）
+_MT5_AVAILABLE = False
+try:
+    import MetaTrader5 as mt5
+    if mt5.initialize():
+        _MT5_AVAILABLE = True
+except Exception:
+    pass
+
+
+def _get_mt5_candles(pair, tf_minutes, bars=60):
+    """MT5からOHLCVデータを取得"""
+    import MetaTrader5 as mt5
+    tf_map = {1: mt5.TIMEFRAME_M1, 5: mt5.TIMEFRAME_M5, 15: mt5.TIMEFRAME_M15}
+    tf = tf_map.get(tf_minutes, mt5.TIMEFRAME_M5)
+    symbol = _MT5_SYMBOLS[pair]
+    rates = mt5.copy_rates_from_pos(symbol, tf, 0, bars)
+    if rates is None or len(rates) == 0:
+        return None
+    return [{"open": r["open"], "high": r["high"], "low": r["low"], "close": r["close"]} for r in rates]
+
+
+# フォールバック用シミュレーション価格
 _fx_prices = {
     "USDJPY": 157.50,
     "EURUSD": 1.0820,
@@ -205,12 +239,9 @@ _fx_prices = {
     "XAUUSD": 3285.0,
 }
 
-_PIP = {"USDJPY": 0.01, "EURUSD": 0.0001, "EURJPY": 0.01, "XAUUSD": 0.1}
-_DEC = {"USDJPY": 3, "EURUSD": 5, "EURJPY": 3, "XAUUSD": 2}
-_SL_PIPS = {"USDJPY": 8, "EURUSD": 8, "EURJPY": 10, "XAUUSD": 20}
 
-
-def _generate_candles(pair, bars=60):
+def _generate_candles_sim(pair, bars=60):
+    """MT5未接続時のシミュレーション"""
     price = _fx_prices[pair]
     pip = _PIP[pair]
     vol = pip * 5
@@ -259,19 +290,28 @@ def _rsi(closes, period=14):
     return round(100 - (100 / (1 + rs)), 1)
 
 
-def _calc_signal(pair):
-    candles = _generate_candles(pair, 60)
+def _calc_signal(pair, tf_minutes=5):
+    # MT5接続中ならリアルデータ、未接続ならシミュレーション
+    if _MT5_AVAILABLE:
+        candles = _get_mt5_candles(pair, tf_minutes, bars=60)
+        if candles is None:
+            candles = _generate_candles_sim(pair, 60)
+        data_source = "MT5"
+    else:
+        candles = _generate_candles_sim(pair, 60)
+        data_source = "SIMULATION"
+
     closes = [c["close"] for c in candles]
     prev_closes = closes[:-1]
 
-    ema9  = _ema(closes, 9)
-    ema21 = _ema(closes, 21)
-    ema9p = _ema(prev_closes, 9)
+    ema9   = _ema(closes, 9)
+    ema21  = _ema(closes, 21)
+    ema9p  = _ema(prev_closes, 9)
     ema21p = _ema(prev_closes, 21)
     rsi_val = _rsi(closes, 14)
 
     pip = _PIP[pair]
-    sl_dist = _SL_PIPS[pair] * pip
+    sl_dist  = _SL_PIPS[pair] * pip
     tp1_dist = sl_dist * 1.5
     tp2_dist = sl_dist * 2.0
 
@@ -292,13 +332,14 @@ def _calc_signal(pair):
         "pair": pair,
         "signal": signal,
         "entry": round(entry, _DEC[pair]),
-        "sl": round(entry - sl_dist if signal == "BUY" else entry + sl_dist, _DEC[pair]),
+        "sl":  round(entry - sl_dist  if signal == "BUY" else entry + sl_dist,  _DEC[pair]),
         "tp1": round(entry + tp1_dist if signal == "BUY" else entry - tp1_dist, _DEC[pair]),
         "tp2": round(entry + tp2_dist if signal == "BUY" else entry - tp2_dist, _DEC[pair]),
-        "ema9": round(ema9, _DEC[pair]),
+        "ema9":  round(ema9,  _DEC[pair]),
         "ema21": round(ema21, _DEC[pair]),
         "rsi": rsi_val,
         "pctChange": round(pct_change, 4),
+        "dataSource": data_source,
     }
 
 
@@ -307,11 +348,12 @@ def fx_signals_api():
     data = request.get_json()
     pairs = data.get("pairs", ["USDJPY", "EURUSD", "EURJPY", "XAUUSD"])
     tf = data.get("tf", 5)
-    signals = [_calc_signal(p) for p in pairs if p in _fx_prices]
+    signals = [_calc_signal(p, tf) for p in pairs if p in _MT5_SYMBOLS]
     return jsonify({
         "success": True,
         "signals": signals,
         "tf": tf,
+        "mt5_connected": _MT5_AVAILABLE,
         "updated_at": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
     })
 
