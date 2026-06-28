@@ -1,10 +1,11 @@
 //+------------------------------------------------------------------+
-//|  Scalping FX Signal Indicator  v2.0                             |
+//|  Scalping FX Signal Indicator  v2.1                             |
 //|  EMA(9/21)クロス + RSI(14) + BB + 上位足フィルター + 時間帯    |
+//|  勝ち○ / 負け✕マーカー付き                                    |
 //|  対応: USD/JPY, EUR/USD, EUR/JPY, GOLD (XAU/USD)               |
 //+------------------------------------------------------------------+
 #property copyright "Scalping FX"
-#property version   "2.00"
+#property version   "2.10"
 #property indicator_chart_window
 #property indicator_buffers 2
 #property indicator_plots   2
@@ -59,6 +60,8 @@ input group    "=== 表示設定 ==="
 input bool     ShowRRLines     = true;   // RRラインを表示する
 input bool     ShowLabel       = true;   // ラベルを表示する
 input bool     ShowFilterInfo  = true;   // フィルター状態を表示する
+input bool     ShowResult      = true;   // 勝ち○ / 負け✕ マーカーを表示する
+input int      ResultMaxBars   = 30;     // 結果を判定する最大足数
 input color    BuyColor        = clrDodgerBlue;
 input color    SellColor       = clrRed;
 
@@ -234,6 +237,14 @@ int OnCalculate(const int rates_total,
                     if(PushNotify) SendNotification(msg);
                 }
             }
+            else if(ShowResult)
+            {
+                // 過去シグナル：結果判定して○/✕を描画
+                double entry = close[i];
+                double sl    = entry - sl_dist;
+                double tp1   = entry + sl_dist * RR_TP1;
+                DrawTradeResult(i, entry, sl, tp1, true, high, low, time, rates_total);
+            }
         }
 
         // ▼ 売りシグナル
@@ -258,6 +269,14 @@ int OnCalculate(const int rates_total,
                     Alert(msg);
                     if(PushNotify) SendNotification(msg);
                 }
+            }
+            else if(ShowResult)
+            {
+                // 過去シグナル：結果判定して○/✕を描画
+                double entry = close[i];
+                double sl    = entry + sl_dist;
+                double tp1   = entry - sl_dist * RR_TP1;
+                DrawTradeResult(i, entry, sl, tp1, false, high, low, time, rates_total);
             }
         }
     }
@@ -413,6 +432,76 @@ void CreateLabel(string name, string text, datetime dt, double price, color clr)
     ObjectSetInteger(0, name, OBJPROP_FONTSIZE,   10);
     ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
     ObjectSetInteger(0, name, OBJPROP_HIDDEN,     true);
+}
+
+//+------------------------------------------------------------------+
+// シグナル後の足をスキャンしてTP/SL到達を判定し○/✕を描画
+void DrawTradeResult(int sig_bar,
+                     double entry, double sl, double tp1,
+                     bool is_buy,
+                     const double &high[],
+                     const double &low[],
+                     const datetime &time[],
+                     int rates_total)
+{
+    // sig_bar はas-series配列のインデックス（0=最新足）
+    // sig_bar-1 が次の足（新しい足）
+    int result_bar = -1;
+    bool win = false;
+
+    int scan_end = MathMax(sig_bar - ResultMaxBars, 1);
+    for(int j = sig_bar - 1; j >= scan_end; j--)
+    {
+        if(is_buy)
+        {
+            if(high[j] >= tp1) { result_bar = j; win = true;  break; }
+            if(low[j]  <= sl)  { result_bar = j; win = false; break; }
+        }
+        else
+        {
+            if(low[j]  <= tp1) { result_bar = j; win = true;  break; }
+            if(high[j] >= sl)  { result_bar = j; win = false; break; }
+        }
+    }
+
+    if(result_bar < 0) return; // まだ結果未確定
+
+    string name = OBJ_PREFIX + "Result_" + IntegerToString((int)time[sig_bar]);
+    if(ObjectFind(0, name) >= 0) return; // 既に描画済み
+
+    double mark_price;
+    string mark_text;
+    color  mark_color;
+
+    if(win)
+    {
+        // ○ 勝ち：緑、TP1側に表示
+        mark_text  = "〇";
+        mark_color = clrLime;
+        mark_price = is_buy ? high[result_bar] + (tp1 - entry) * 0.15
+                            : low[result_bar]  - (entry - tp1) * 0.15;
+    }
+    else
+    {
+        // ✕ 負け：赤、SL側に表示
+        mark_text  = "✕";
+        mark_color = clrRed;
+        mark_price = is_buy ? low[result_bar]  - MathAbs(entry - sl) * 0.15
+                            : high[result_bar] + MathAbs(sl - entry) * 0.15;
+    }
+
+    ObjectCreate(0, name, OBJ_TEXT, 0, time[result_bar], mark_price);
+    ObjectSetString (0, name, OBJPROP_TEXT,      mark_text);
+    ObjectSetInteger(0, name, OBJPROP_COLOR,     mark_color);
+    ObjectSetInteger(0, name, OBJPROP_FONTSIZE,  14);
+    ObjectSetString (0, name, OBJPROP_FONT,      "Arial Unicode MS");
+    ObjectSetInteger(0, name, OBJPROP_ANCHOR,    ANCHOR_CENTER);
+    ObjectSetInteger(0, name, OBJPROP_SELECTABLE,false);
+    ObjectSetInteger(0, name, OBJPROP_HIDDEN,    true);
+    string tip = win
+        ? "勝ち ○  TP1到達: " + DoubleToString(tp1, _Digits)
+        : "負け ✕  SL到達: " + DoubleToString(sl,  _Digits);
+    ObjectSetString(0, name, OBJPROP_TOOLTIP, tip);
 }
 
 //+------------------------------------------------------------------+
