@@ -20,14 +20,42 @@ const PAIRS = {
 // ---------- メイン ----------
 document.addEventListener('DOMContentLoaded', () => {
   initPairTabs();
+  loadMt5Status();
   loadOverview();
   loadPair(state.activePair);
-  // 60秒ごとに自動更新
+  // 15秒ごとにMT5状態確認、60秒ごとにシグナル更新
+  setInterval(loadMt5Status, 15000);
   setInterval(() => {
     loadOverview();
     loadPair(state.activePair);
   }, 60000);
 });
+
+async function loadMt5Status() {
+  try {
+    const res = await fetch('/api/mt5/status');
+    const json = await res.json();
+    if (!json.success) return;
+    const connected = Object.values(json.status).some(s => s.connected);
+    const dot = document.getElementById('mt5-dot');
+    const label = document.getElementById('mt5-label');
+    const guide = document.getElementById('mt5-guide');
+    if (connected) {
+      const pairs = Object.entries(json.status).filter(([, s]) => s.connected).map(([p]) => p);
+      dot.style.background = '#3fb950';
+      dot.style.animation = 'pulse 2s infinite';
+      label.style.color = '#3fb950';
+      label.textContent = `MT5 接続中 (${pairs.join(', ')})`;
+      if (guide) guide.style.display = 'none';
+    } else {
+      dot.style.background = '#8b949e';
+      dot.style.animation = 'none';
+      label.style.color = '#8b949e';
+      label.textContent = 'MT5 未接続 (デモデータ)';
+      if (guide) guide.style.display = 'block';
+    }
+  } catch (e) { /* ignore */ }
+}
 
 function initPairTabs() {
   const container = document.getElementById('pair-tabs');
@@ -96,6 +124,9 @@ function renderTrendBar(data) {
   const el = document.getElementById('trend-bar');
   const trendLabels = { UP: '上昇トレンド', DOWN: '下降トレンド', RANGE: 'レンジ相場' };
   const arrow = data.trend === 'UP' ? '↑' : data.trend === 'DOWN' ? '↓' : '→';
+  const srcBadge = data.data_source === 'mt5'
+    ? `<span style="padding:2px 8px;background:rgba(63,185,80,0.15);color:#3fb950;border:1px solid rgba(63,185,80,0.4);border-radius:4px;font-size:11px;font-weight:700">MT5 LIVE</span>`
+    : `<span style="padding:2px 8px;background:rgba(139,148,158,0.15);color:#8b949e;border:1px solid var(--border);border-radius:4px;font-size:11px">DEMO</span>`;
   el.innerHTML = `
     <span class="trend-label">1H トレンド</span>
     <span class="trend-badge ${data.trend}">${arrow} ${trendLabels[data.trend]}</span>
@@ -103,6 +134,7 @@ function renderTrendBar(data) {
       <div class="trend-strength-fill ${data.trend}" style="width:${data.trend_strength}%"></div>
     </div>
     <span class="trend-strength-val">${data.trend_strength}%</span>
+    ${srcBadge}
     <span class="updated-badge">
       <span class="pulse-dot"></span>
       ${data.updated_at}

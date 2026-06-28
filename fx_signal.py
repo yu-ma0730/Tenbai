@@ -3,6 +3,10 @@ import random
 import math
 from datetime import datetime, timedelta
 
+# MT5ブリッジから受信したリアルデータストア
+# { pair: { "candles_15m": [...], "candles_1h": [...], "pushed_at": "..." } }
+mt5_data_store: dict = {}
+
 
 PAIRS = {
     "USDJPY": {"name": "ドル円", "pip": 0.01, "digits": 3},
@@ -383,9 +387,16 @@ def generate_entry(pair, signal, candle):
 
 
 def analyze_pair(pair):
-    """ペアを分析してシグナルを返す"""
-    candles_1h = generate_candles(pair, 60, 100)
-    candles_15m = generate_candles(pair, 15, 80)
+    """ペアを分析してシグナルを返す。MT5データがあればそれを優先する"""
+    mt5 = mt5_data_store.get(pair)
+    data_source = "mt5" if mt5 else "demo"
+
+    if mt5:
+        candles_1h  = mt5["candles_1h"]
+        candles_15m = mt5["candles_15m"]
+    else:
+        candles_1h  = generate_candles(pair, 60, 100)
+        candles_15m = generate_candles(pair, 15, 80)
 
     trend, trend_strength = get_trend(candles_1h)
     signals = scan_patterns(candles_15m, trend)
@@ -399,12 +410,12 @@ def analyze_pair(pair):
                 sig["entry_info"] = entry_info
         result_signals.append(sig)
 
-    # チャート用に最新40本の15M足を返す
     chart_candles = candles_15m[-40:]
-    # 1H EMAデータ
     closes_1h = [c["close"] for c in candles_1h]
     ema20_1h = ema(closes_1h, 20)
     ema50_1h = ema(closes_1h, 50)
+
+    updated = mt5.get("pushed_at", "") if mt5 else datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
     return {
         "pair": pair,
@@ -416,5 +427,6 @@ def analyze_pair(pair):
         "candles_1h": candles_1h[-40:],
         "ema20_1h": ema20_1h[-40:],
         "ema50_1h": ema50_1h[-40:],
-        "updated_at": datetime.now().strftime("%Y/%m/%d %H:%M:%S"),
+        "data_source": data_source,
+        "updated_at": updated,
     }

@@ -4,7 +4,7 @@ import os
 import re
 import urllib.parse
 from datetime import datetime
-from fx_signal import analyze_pair, PAIRS
+from fx_signal import analyze_pair, PAIRS, mt5_data_store
 
 app = Flask(__name__)
 
@@ -203,6 +203,40 @@ def fx_scan():
         return jsonify({"success": False, "error": "Invalid pair"}), 400
     data = analyze_pair(pair)
     return jsonify({"success": True, **data})
+
+
+@app.route("/api/mt5/push", methods=["POST"])
+def mt5_push():
+    """MT5ブリッジからOHLCデータを受信してストアに保存"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "No data"}), 400
+
+    pair = data.get("pair")
+    if pair not in PAIRS:
+        return jsonify({"success": False, "error": f"Unknown pair: {pair}"}), 400
+
+    mt5_data_store[pair] = {
+        "candles_15m": data.get("candles_15m", []),
+        "candles_1h":  data.get("candles_1h",  []),
+        "pushed_at":   data.get("pushed_at", datetime.now().strftime("%Y/%m/%d %H:%M:%S")),
+    }
+    return jsonify({"success": True, "pair": pair, "candles_15m": len(mt5_data_store[pair]["candles_15m"])})
+
+
+@app.route("/api/mt5/status", methods=["GET"])
+def mt5_status():
+    """MT5ブリッジの接続状態を返す"""
+    status = {}
+    for pair in PAIRS:
+        d = mt5_data_store.get(pair)
+        status[pair] = {
+            "connected": d is not None,
+            "candles_15m": len(d["candles_15m"]) if d else 0,
+            "candles_1h":  len(d["candles_1h"])  if d else 0,
+            "last_push":   d["pushed_at"] if d else None,
+        }
+    return jsonify({"success": True, "status": status})
 
 
 @app.route("/api/fx/scan_all", methods=["GET"])
