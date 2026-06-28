@@ -305,32 +305,88 @@ void ShowFilterStatus(bool htf_bull, bool htf_bear)
 void DrawRRLines(double entry, double sl_dist, bool is_buy, datetime sig_time)
 {
     ObjectsDeleteAll(0, OBJ_PREFIX + "Line");
+    ObjectsDeleteAll(0, OBJ_PREFIX + "Zone");
     ObjectsDeleteAll(0, OBJ_PREFIX + "Label");
 
     double sl  = is_buy ? entry - sl_dist          : entry + sl_dist;
     double tp1 = is_buy ? entry + sl_dist * RR_TP1 : entry - sl_dist * RR_TP1;
     double tp2 = is_buy ? entry + sl_dist * RR_TP2 : entry - sl_dist * RR_TP2;
 
+    // ゾーン表示用の右端時間（現在から50本先）
+    datetime t_left  = sig_time;
+    datetime t_right = sig_time + PeriodSeconds(PERIOD_CURRENT) * 50;
+
+    // ---- 赤ゾーン：エントリー → SL（リスク範囲）----
+    CreateZone(OBJ_PREFIX + "ZoneSL",
+               t_left, entry, t_right, sl,
+               clrRed, 60,
+               "リスクゾーン (SL): " + DoubleToString(sl, _Digits));
+
+    // ---- 青ゾーン：エントリー → TP1（RR1:1.5）----
+    CreateZone(OBJ_PREFIX + "ZoneTP1",
+               t_left, entry, t_right, tp1,
+               clrDodgerBlue, 50,
+               "TP1  RR 1:" + DoubleToString(RR_TP1,1) + "  " + DoubleToString(tp1, _Digits));
+
+    // ---- 水色ゾーン：TP1 → TP2（RR1:2.0）----
+    CreateZone(OBJ_PREFIX + "ZoneTP2",
+               t_left, tp1, t_right, tp2,
+               clrDeepSkyBlue, 40,
+               "TP2  RR 1:" + DoubleToString(RR_TP2,1) + "  " + DoubleToString(tp2, _Digits));
+
+    // ---- 水平ライン ----
     CreateHLine(OBJ_PREFIX + "LineEntry", entry, clrWhite,             STYLE_SOLID, 2,
                 "ENTRY: " + DoubleToString(entry, _Digits));
-    CreateHLine(OBJ_PREFIX + "LineSL",    sl,    clrOrangeRed,         STYLE_DASH,  1,
+    CreateHLine(OBJ_PREFIX + "LineSL",    sl,    clrOrangeRed,         STYLE_DASH,  2,
                 "SL (損切): " + DoubleToString(sl, _Digits));
-    CreateHLine(OBJ_PREFIX + "LineTP1",   tp1,   clrMediumSpringGreen, STYLE_DASH,  1,
+    CreateHLine(OBJ_PREFIX + "LineTP1",   tp1,   clrDodgerBlue,        STYLE_DASH,  2,
                 "TP1  RR 1:" + DoubleToString(RR_TP1,1) + "  " + DoubleToString(tp1, _Digits));
-    CreateHLine(OBJ_PREFIX + "LineTP2",   tp2,   clrLime,              STYLE_DASH,  1,
+    CreateHLine(OBJ_PREFIX + "LineTP2",   tp2,   clrDeepSkyBlue,       STYLE_DASH,  2,
                 "TP2  RR 1:" + DoubleToString(RR_TP2,1) + "  " + DoubleToString(tp2, _Digits));
 
+    // ---- ラベル ----
     if(ShowLabel)
     {
         string dir  = is_buy ? "▲ BUY" : "▼ SELL";
         color  dclr = is_buy ? BuyColor : SellColor;
+
+        // SLラベル
+        CreateLabel(OBJ_PREFIX + "LabelSL",
+                    "SL  " + DoubleToString(sl, _Digits),
+                    t_right, sl, clrOrangeRed);
+        // TP1ラベル
+        CreateLabel(OBJ_PREFIX + "LabelTP1",
+                    "TP1 (RR 1:" + DoubleToString(RR_TP1,1) + ")  " + DoubleToString(tp1, _Digits),
+                    t_right, tp1, clrDodgerBlue);
+        // TP2ラベル
+        CreateLabel(OBJ_PREFIX + "LabelTP2",
+                    "TP2 (RR 1:" + DoubleToString(RR_TP2,1) + ")  " + DoubleToString(tp2, _Digits),
+                    t_right, tp2, clrDeepSkyBlue);
+        // シグナルラベル
         CreateLabel(OBJ_PREFIX + "LabelSignal",
-                    StringFormat("%s  SL:%.%df  TP1:%.%df  TP2:%.%df",
-                        dir, _Digits, sl, _Digits, tp1, _Digits, tp2),
-                    sig_time, tp2, dclr);
+                    StringFormat("%s  Entry:%.%df", dir, _Digits, entry),
+                    sig_time, entry, dclr);
     }
 
     ChartRedraw();
+}
+
+//+------------------------------------------------------------------+
+void CreateZone(string name,
+                datetime t1, double price1,
+                datetime t2, double price2,
+                color clr, uchar alpha, string tooltip)
+{
+    if(ObjectFind(0, name) >= 0) ObjectDelete(0, name);
+    ObjectCreate(0, name, OBJ_RECTANGLE, 0, t1, price1, t2, price2);
+    ObjectSetInteger(0, name, OBJPROP_COLOR,      clr);
+    ObjectSetInteger(0, name, OBJPROP_STYLE,      STYLE_SOLID);
+    ObjectSetInteger(0, name, OBJPROP_WIDTH,      1);
+    ObjectSetInteger(0, name, OBJPROP_FILL,       true);       // 塗りつぶし
+    ObjectSetInteger(0, name, OBJPROP_BACK,       true);       // 背面表示
+    ObjectSetInteger(0, name, OBJPROP_SELECTABLE, false);
+    ObjectSetInteger(0, name, OBJPROP_HIDDEN,     true);
+    ObjectSetString (0, name, OBJPROP_TOOLTIP,    tooltip);
 }
 
 //+------------------------------------------------------------------+
