@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FX サインツール | Tenbai</title>
+  <link rel="stylesheet" href="/static/css/fx_signal.css">
+</head>
+<body>
+
+<header class="fx-header">
+  <div class="fx-header-left">
+    <div>
+      <div class="fx-logo">FX SIGNAL</div>
+      <div class="fx-subtitle">ローソク足パターン検出 | 1H分析 × 15M エントリー</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <button class="scan-btn" id="scan-btn">
+      <span>↺</span> 最新シグナルを取得
+    </button>
+    <a href="/" class="back-link">← 物販ツールへ戻る</a>
+  </div>
+</header>
+
+<div class="fx-main">
+
+  <!-- ペア選択タブ -->
+  <div id="pair-tabs" class="pair-tabs"></div>
+
+  <!-- トレンドバー -->
+  <div id="trend-bar" class="trend-bar">
+    <span class="trend-label">読み込み中...</span>
+  </div>
+
+  <!-- メインコンテンツ -->
+  <div class="content-grid">
+
+    <!-- チャート -->
+    <div>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-card-title">価格チャート + シグナル</span>
+          <div class="tf-selector">
+            <button class="tf-btn active" data-tf="15m">15M</button>
+            <button class="tf-btn" data-tf="1h">1H</button>
+          </div>
+        </div>
+        <div class="chart-container" style="position:relative">
+          <canvas id="price-chart"></canvas>
+          <div id="chart-loading" class="loading-overlay" style="display:none">
+            <div class="spinner"></div>
+          </div>
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#3fb950"></div> 買いシグナル
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#f85149"></div> 売りシグナル
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#58a6ff"></div> EMA20 (1H表示時)
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#f0883e"></div> EMA50 (1H表示時)
+          </div>
+        </div>
+      </div>
+
+      <!-- 対応パターン一覧 -->
+      <div class="overview-card" style="margin-top:16px">
+        <div class="overview-card-header">検出パターン一覧</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border)">
+              <th style="padding:10px 16px;text-align:left;color:var(--text-muted);font-size:11px;text-transform:uppercase">パターン</th>
+              <th style="padding:10px 16px;text-align:left;color:var(--text-muted);font-size:11px;text-transform:uppercase">方向</th>
+              <th style="padding:10px 16px;text-align:left;color:var(--text-muted);font-size:11px;text-transform:uppercase">本数</th>
+              <th style="padding:10px 16px;text-align:left;color:var(--text-muted);font-size:11px;text-transform:uppercase">信頼度</th>
+            </tr>
+          </thead>
+          <tbody style="color:var(--text)">
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">ハンマー</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">1本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">首吊り線</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">1本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">シューティングスター</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">1本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">逆ハンマー</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">1本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">ドージ</td>
+              <td style="padding:10px 16px"><span class="dir-chip NEUTRAL">◆ 中立</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">1本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★☆☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">陽線包み足</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">2本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">陰線包み足</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">2本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">切り込み線</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">2本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">かぶせ線</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">2本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★☆</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">明けの明星</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">3本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★★</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">宵の明星</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">3本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★★</td>
+            </tr>
+            <tr style="border-bottom:1px solid var(--border)">
+              <td style="padding:10px 16px;font-weight:600">赤三兵</td>
+              <td style="padding:10px 16px"><span class="dir-chip BUY">▲ 買い</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">3本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★★</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 16px;font-weight:600">三羽烏</td>
+              <td style="padding:10px 16px"><span class="dir-chip SELL">▼ 売り</span></td>
+              <td style="padding:10px 16px;color:var(--text-muted)">3本</td>
+              <td style="padding:10px 16px;color:var(--text-muted)">★★★★★</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 右パネル: シグナル -->
+    <div class="signal-panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 2px">
+        <span style="font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px">
+          15M シグナル
+        </span>
+        <span style="font-size:11px;color:var(--text-muted)">最大5件</span>
+      </div>
+      <div id="signals-container">
+        <div class="no-signal">
+          <div class="no-signal-icon">⏳</div>
+          <div class="no-signal-text">読み込み中...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 全ペアオーバービュー -->
+  <div class="overview-card">
+    <div class="overview-card-header">全ペア サマリー</div>
+    <table class="overview-table">
+      <thead>
+        <tr>
+          <th>ペア</th>
+          <th>1H トレンド</th>
+          <th>最新シグナル</th>
+          <th>信頼度</th>
+          <th>更新時刻</th>
+        </tr>
+      </thead>
+      <tbody id="overview-tbody">
+        <tr><td colspan="5" style="padding:24px;text-align:center;color:var(--text-muted)">読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 注意事項 -->
+  <div style="padding:14px 18px;background:rgba(210,153,34,0.08);border:1px solid rgba(210,153,34,0.3);border-radius:8px;font-size:12px;color:#d29922;line-height:1.7">
+    ⚠ <strong>免責事項:</strong>
+    本ツールはローソク足パターンを自動検出してサインを表示しますが、FX取引には相場リスクが伴います。
+    本ツールの情報は投資助言ではなく参考情報です。実際の取引はご自身の判断と責任でお行いください。
+    現在のデータはデモ用シミュレーションデータです。実運用にはブローカーAPIへの接続が必要です。
+  </div>
+
+</div>
+
+<script src="/static/js/fx_signal.js"></script>
+</body>
+</html>

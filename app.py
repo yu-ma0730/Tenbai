@@ -4,6 +4,7 @@ import os
 import re
 import urllib.parse
 from datetime import datetime
+from fx_signal import analyze_pair, PAIRS
 
 app = Flask(__name__)
 
@@ -188,6 +189,36 @@ def analyze_product():
         "suppliers": suppliers,
         "price_comparison": price_comparison,
     })
+
+
+@app.route("/fx")
+def fx_signal_page():
+    return render_template("fx_signal.html")
+
+
+@app.route("/api/fx/scan", methods=["GET"])
+def fx_scan():
+    pair = request.args.get("pair", "USDJPY")
+    if pair not in PAIRS:
+        return jsonify({"success": False, "error": "Invalid pair"}), 400
+    data = analyze_pair(pair)
+    return jsonify({"success": True, **data})
+
+
+@app.route("/api/fx/scan_all", methods=["GET"])
+def fx_scan_all():
+    results = {}
+    for pair in PAIRS:
+        data = analyze_pair(pair)
+        # サマリーのみ返す
+        results[pair] = {
+            "pair_name": data["pair_name"],
+            "trend": data["trend"],
+            "trend_strength": data["trend_strength"],
+            "top_signal": data["signals"][0] if data["signals"] else None,
+            "updated_at": data["updated_at"],
+        }
+    return jsonify({"success": True, "pairs": results})
 
 
 if __name__ == "__main__":

@@ -1,0 +1,524 @@
+/* FX Signal Tool Styles */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text-muted: #8b949e;
+  --green: #3fb950;
+  --red: #f85149;
+  --yellow: #d29922;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+  --accent: #f0883e;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ヘッダー */
+.fx-header {
+  background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.fx-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.fx-logo {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f0883e, #f85149);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+.fx-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--text); }
+
+/* メインレイアウト */
+.fx-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  display: grid;
+  gap: 20px;
+}
+
+/* ペアタブ */
+.pair-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pair-tab {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  position: relative;
+}
+.pair-tab:hover {
+  border-color: var(--blue);
+  color: var(--text);
+}
+.pair-tab.active {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.pair-tab .signal-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+.pair-tab .signal-badge.buy { background: var(--green); }
+.pair-tab .signal-badge.sell { background: var(--red); }
+
+/* トレンドバー */
+.trend-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.trend-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.trend-badge {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.trend-badge.UP { background: rgba(63,185,80,0.2); color: var(--green); border: 1px solid var(--green); }
+.trend-badge.DOWN { background: rgba(248,81,73,0.2); color: var(--red); border: 1px solid var(--red); }
+.trend-badge.RANGE { background: rgba(139,148,158,0.2); color: var(--text-muted); border: 1px solid var(--border); }
+.trend-strength-bar {
+  flex: 1;
+  min-width: 100px;
+  height: 6px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.trend-strength-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.trend-strength-fill.UP { background: linear-gradient(90deg, var(--green), #7ee787); }
+.trend-strength-fill.DOWN { background: linear-gradient(90deg, var(--red), #ff7b72); }
+.trend-strength-fill.RANGE { background: var(--text-muted); }
+.trend-strength-val {
+  font-size: 12px;
+  color: var(--text-muted);
+  min-width: 40px;
+}
+.updated-badge {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pulse-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+/* メインコンテンツグリッド */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 16px;
+}
+@media (max-width: 1024px) {
+  .content-grid { grid-template-columns: 1fr; }
+}
+
+/* チャートカード */
+.chart-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.chart-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chart-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.tf-selector {
+  display: flex;
+  gap: 4px;
+}
+.tf-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tf-btn.active, .tf-btn:hover {
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+}
+.chart-container {
+  padding: 12px;
+  height: 320px;
+  position: relative;
+}
+canvas.price-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* シグナルパネル */
+.signal-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* シグナルカード */
+.signal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.signal-card:hover { border-color: var(--blue); }
+.signal-card-header {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.signal-dir-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.signal-dir-icon.BUY { background: rgba(63,185,80,0.15); }
+.signal-dir-icon.SELL { background: rgba(248,81,73,0.15); }
+.signal-dir-icon.NEUTRAL { background: rgba(139,148,158,0.15); }
+.signal-meta {
+  flex: 1;
+  min-width: 0;
+}
+.signal-pattern-name {
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.signal-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.signal-strength-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.signal-strength-pill.BUY { background: rgba(63,185,80,0.2); color: var(--green); }
+.signal-strength-pill.SELL { background: rgba(248,81,73,0.2); color: var(--red); }
+.signal-strength-pill.NEUTRAL { background: rgba(139,148,158,0.2); color: var(--text-muted); }
+
+.signal-card-body {
+  padding: 12px 16px;
+}
+
+/* エントリー情報 */
+.entry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.entry-item {
+  padding: 8px 10px;
+  background: var(--bg3);
+  border-radius: 6px;
+}
+.entry-item-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 3px;
+}
+.entry-item-value {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+}
+.entry-item-value.entry { color: var(--blue); }
+.entry-item-value.sl { color: var(--red); }
+.entry-item-value.tp1 { color: var(--green); }
+.entry-item-value.tp2 { color: #7ee787; }
+
+/* トレンド一致インジケーター */
+.trend-match-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  margin-top: 6px;
+}
+.trend-match-indicator.match {
+  background: rgba(63,185,80,0.1);
+  color: var(--green);
+  border: 1px solid rgba(63,185,80,0.3);
+}
+.trend-match-indicator.no-match {
+  background: rgba(210,153,34,0.1);
+  color: var(--yellow);
+  border: 1px solid rgba(210,153,34,0.3);
+}
+.trend-match-indicator.neutral {
+  background: rgba(139,148,158,0.1);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+/* 空のシグナル */
+.no-signal {
+  padding: 32px;
+  text-align: center;
+  color: var(--text-muted);
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.no-signal-icon { font-size: 32px; margin-bottom: 8px; }
+.no-signal-text { font-size: 14px; }
+
+/* ローディング */
+.loading-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(13,17,23,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  z-index: 50;
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* スキャンボタン */
+.scan-btn {
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #58a6ff, #1f6feb);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.scan-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(88,166,255,0.3); }
+.scan-btn:active { transform: translateY(0); }
+.scan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* オーバービューテーブル */
+.overview-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.overview-card-header {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.overview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.overview-table th {
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.overview-table td {
+  padding: 12px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.overview-table tr:last-child td { border-bottom: none; }
+.overview-table tr {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.overview-table tr:hover { background: var(--bg3); }
+
+.dir-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.dir-chip.BUY { background: rgba(63,185,80,0.15); color: var(--green); }
+.dir-chip.SELL { background: rgba(248,81,73,0.15); color: var(--red); }
+.dir-chip.NEUTRAL, .dir-chip.NONE { background: var(--bg3); color: var(--text-muted); }
+
+.strength-bar-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.strength-bar-bg {
+  flex: 1;
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  min-width: 60px;
+}
+.strength-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+}
+.strength-bar-fill.BUY { background: var(--green); }
+.strength-bar-fill.SELL { background: var(--red); }
+.strength-bar-fill.NEUTRAL { background: var(--text-muted); }
+.strength-val { font-size: 12px; color: var(--text-muted); min-width: 32px; }
+
+/* 凡例 */
+.legend {
+  display: flex;
+  gap: 16px;
+  padding: 8px 12px;
+  flex-wrap: wrap;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+/* モバイル対応 */
+@media (max-width: 600px) {
+  .pair-tabs { gap: 4px; }
+  .pair-tab { padding: 8px 14px; font-size: 12px; }
+  .entry-grid { grid-template-columns: 1fr 1fr; }
+}
