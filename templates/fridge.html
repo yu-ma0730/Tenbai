@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>冷蔵庫レシピAI｜今ある食材で今日の料理を提案</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: #faf9f6;
+      color: #2d2d2d;
+      min-height: 100vh;
+    }
+
+    header {
+      background: linear-gradient(135deg, #ff7c3f 0%, #ff5252 100%);
+      color: #fff;
+      text-align: center;
+      padding: 32px 24px 28px;
+      box-shadow: 0 2px 12px rgba(255, 100, 50, 0.25);
+    }
+
+    .header-icon { font-size: 48px; display: block; margin-bottom: 8px; }
+
+    header h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      font-size: 13px;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+    }
+
+    main {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 32px 16px 64px;
+    }
+
+    /* 食材入力エリア */
+    .input-section {
+      background: #fff;
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
+    }
+
+    .input-section h2 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2d2d2d;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .input-section h2 .step-badge {
+      background: #ff7c3f;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    #ingredient-input {
+      flex: 1;
+      border: 2px solid #e8e4de;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: #2d2d2d;
+      background: #faf9f6;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #ingredient-input:focus { border-color: #ff7c3f; background: #fff; }
+    #ingredient-input::placeholder { color: #b0a89a; }
+
+    .add-btn {
+      background: #ff7c3f;
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 22px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      line-height: 1;
+    }
+
+    .add-btn:hover { background: #ff5e1f; }
+    .add-btn:active { transform: scale(0.95); }
+
+    /* 食材タグ */
+    #tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 40px;
+    }
+
+    .empty-hint {
+      color: #b0a89a;
+      font-size: 13px;
+      padding: 8px 0;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #fff3ed;
+      border: 1.5px solid #ffcfb3;
+      color: #d95c1a;
+      font-size: 14px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: default;
+      animation: tagPop 0.2s ease;
+    }
+
+    @keyframes tagPop {
+      from { transform: scale(0.8); opacity: 0; }
+      to   { transform: scale(1);   opacity: 1; }
+    }
+
+    .tag-remove {
+      cursor: pointer;
+      color: #ffaa7a;
+      font-size: 16px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .tag-remove:hover { color: #d95c1a; }
+
+    /* おすすめ食材 */
+    .suggestions {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid #f0ece6;
+    }
+
+    .suggestions p {
+      font-size: 12px;
+      color: #9a8e80;
+      margin-bottom: 8px;
+    }
+
+    .suggestion-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .chip {
+      background: #f5f0ea;
+      border: 1.5px solid #e0d8ce;
+      color: #6b5e50;
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .chip:hover { background: #ffefe6; border-color: #ffcfb3; color: #d95c1a; }
+
+    /* 提案ボタン */
+    #suggest-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #ff7c3f, #ff5252);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(255, 100, 50, 0.3);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    #suggest-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 32px rgba(255, 100, 50, 0.38);
+    }
+
+    #suggest-btn:active:not(:disabled) { transform: translateY(0); }
+
+    #suggest-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ローディング */
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 48px 24px;
+    }
+
+    .loading.visible { display: block; }
+
+    .spinner {
+      width: 52px;
+      height: 52px;
+      border: 4px solid #ffe0d0;
+      border-top-color: #ff7c3f;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 20px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading p {
+      color: #9a8e80;
+      font-size: 15px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    /* レシピ結果 */
+    #results { display: none; }
+    #results.visible { display: block; }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .results-header h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #2d2d2d;
+    }
+
+    .results-count {
+      background: #ff7c3f;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* レシピカード */
+    .recipe-card {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      border-left: 4px solid #ff7c3f;
+      animation: cardIn 0.3s ease both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .recipe-card:nth-child(1) { animation-delay: 0.05s; }
+    .recipe-card:nth-child(2) { animation-delay: 0.1s; }
+    .recipe-card:nth-child(3) { animation-delay: 0.15s; }
+    .recipe-card:nth-child(4) { animation-delay: 0.2s; }
+    .recipe-card:nth-child(5) { animation-delay: 0.25s; }
+
+    .recipe-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .recipe-name {
+      font-size: 19px;
+      font-weight: 800;
+      color: #2d2d2d;
+      line-height: 1.3;
+    }
+
+    .recipe-badges {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 5px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .badge-cal {
+      background: #fef3e2;
+      color: #c47d00;
+      border: 1.5px solid #ffdfa0;
+    }
+
+    .badge-time {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1.5px solid #a5d6a7;
+    }
+
+    .recipe-desc {
+      font-size: 14px;
+      color: #6b5e50;
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .ingredient-section { margin-top: 10px; }
+
+    .ingredient-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #9a8e80;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+
+    .ingredient-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ing-tag {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .ing-tag.have {
+      background: #e8f5e9;
+      color: #2e7d32;
+      border: 1px solid #c8e6c9;
+    }
+
+    .ing-tag.need {
+      background: #f3f0ff;
+      color: #5e35b1;
+      border: 1px solid #d1c4e9;
+    }
+
+    /* エラー */
+    .error-box {
+      display: none;
+      background: #fff5f5;
+      border: 1.5px solid #ffcdd2;
+      border-radius: 16px;
+      padding: 20px 24px;
+      color: #c62828;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .error-box.visible { display: block; }
+
+    /* リセット */
+    .reset-btn {
+      display: block;
+      margin: 24px auto 0;
+      background: transparent;
+      color: #9a8e80;
+      border: 1.5px solid #e0d8ce;
+      border-radius: 12px;
+      padding: 12px 28px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .reset-btn:hover { background: #f5f0ea; color: #6b5e50; border-color: #c8bfb4; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: #b0a89a;
+      border-top: 1px solid #f0ece6;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span class="header-icon">🍳</span>
+    <h1>冷蔵庫レシピAI</h1>
+    <p>今ある食材を入力するだけで、今日作れる料理を提案します</p>
+  </header>
+
+  <main>
+
+    <!-- 食材入力 -->
+    <div class="input-section">
+      <h2>
+        <span class="step-badge">STEP 1</span>
+        冷蔵庫にある食材を入力
+      </h2>
+
+      <div class="input-row">
+        <input
+          id="ingredient-input"
+          type="text"
+          placeholder="例: 卵、玉ねぎ、鶏むね肉..."
+          maxlength="30"
+          autocomplete="off"
+        />
+        <button class="add-btn" id="add-btn" title="追加">＋</button>
+      </div>
+
+      <div id="tags-container">
+        <span class="empty-hint">食材を追加してください</span>
+      </div>
+
+      <div class="suggestions">
+        <p>よく使う食材をタップして追加:</p>
+        <div class="suggestion-chips">
+          <span class="chip" data-val="卵">🥚 卵</span>
+          <span class="chip" data-val="玉ねぎ">🧅 玉ねぎ</span>
+          <span class="chip" data-val="鶏むね肉">🍗 鶏むね肉</span>
+          <span class="chip" data-val="豚バラ肉">🥩 豚バラ肉</span>
+          <span class="chip" data-val="じゃがいも">🥔 じゃがいも</span>
+          <span class="chip" data-val="にんじん">🥕 にんじん</span>
+          <span class="chip" data-val="豆腐">🫙 豆腐</span>
+          <span class="chip" data-val="キャベツ">🥬 キャベツ</span>
+          <span class="chip" data-val="ご飯">🍚 ご飯</span>
+          <span class="chip" data-val="もやし">🌱 もやし</span>
+          <span class="chip" data-val="ほうれん草">🥦 ほうれん草</span>
+          <span class="chip" data-val="トマト">🍅 トマト</span>
+        </div>
+      </div>
+    </div>
+
+    <button id="suggest-btn" disabled>
+      🍽️ レシピを提案してもらう
+    </button>
+
+    <!-- ローディング -->
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>AIがレシピを考えています...</p>
+    </div>
+
+    <!-- エラー -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- 結果 -->
+    <div id="results">
+      <div class="results-header">
+        <h2>🍴 提案レシピ</h2>
+        <span class="results-count" id="results-count"></span>
+      </div>
+      <div id="recipe-list"></div>
+      <button class="reset-btn" id="reset-btn">別の食材で試す</button>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>© 2026 冷蔵庫レシピAI｜食材を無駄なく、毎日おいしく</p>
+  </footer>
+
+  <script>
+    const input = document.getElementById('ingredient-input');
+    const addBtn = document.getElementById('add-btn');
+    const tagsContainer = document.getElementById('tags-container');
+    const suggestBtn = document.getElementById('suggest-btn');
+    const loading = document.getElementById('loading');
+    const results = document.getElementById('results');
+    const errorBox = document.getElementById('error-box');
+    const recipeList = document.getElementById('recipe-list');
+    const resetBtn = document.getElementById('reset-btn');
+
+    let ingredients = [];
+
+    function renderTags() {
+      tagsContainer.innerHTML = '';
+      if (ingredients.length === 0) {
+        tagsContainer.innerHTML = '<span class="empty-hint">食材を追加してください</span>';
+        suggestBtn.disabled = true;
+        return;
+      }
+      ingredients.forEach((ing, i) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = `${ing} <span class="tag-remove" data-index="${i}">×</span>`;
+        tagsContainer.appendChild(tag);
+      });
+      suggestBtn.disabled = false;
+    }
+
+    function addIngredient(val) {
+      const trimmed = val.trim();
+      if (!trimmed || ingredients.includes(trimmed)) return;
+      if (ingredients.length >= 15) {
+        showError('食材は最大15個まで入力できます');
+        return;
+      }
+      ingredients.push(trimmed);
+      renderTags();
+    }
+
+    addBtn.addEventListener('click', () => {
+      addIngredient(input.value);
+      input.value = '';
+      input.focus();
+    });
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        addIngredient(input.value);
+        input.value = '';
+      }
+    });
+
+    tagsContainer.addEventListener('click', (e) => {
+      if (e.target.classList.contains('tag-remove')) {
+        const idx = parseInt(e.target.dataset.index);
+        ingredients.splice(idx, 1);
+        renderTags();
+      }
+    });
+
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        addIngredient(chip.dataset.val);
+      });
+    });
+
+    function showError(msg) {
+      errorBox.textContent = msg;
+      errorBox.classList.add('visible');
+      setTimeout(() => errorBox.classList.remove('visible'), 4000);
+    }
+
+    function setLoadingState(on) {
+      loading.classList.toggle('visible', on);
+      suggestBtn.disabled = on;
+      results.classList.remove('visible');
+      errorBox.classList.remove('visible');
+    }
+
+    function renderRecipes(recipes) {
+      recipeList.innerHTML = '';
+      document.getElementById('results-count').textContent = `${recipes.length}品`;
+
+      recipes.forEach(r => {
+        const card = document.createElement('div');
+        card.className = 'recipe-card';
+
+        const usedHtml = (r.used_ingredients || []).map(i =>
+          `<span class="ing-tag have">✓ ${i}</span>`
+        ).join('');
+
+        const addHtml = (r.additional_ingredients || []).length > 0
+          ? `<div class="ingredient-section">
+               <div class="ingredient-label">追加で必要</div>
+               <div class="ingredient-tags">
+                 ${r.additional_ingredients.map(i => `<span class="ing-tag need">+ ${i}</span>`).join('')}
+               </div>
+             </div>`
+          : '';
+
+        card.innerHTML = `
+          <div class="recipe-top">
+            <div class="recipe-name">${r.name}</div>
+            <div class="recipe-badges">
+              <span class="badge badge-cal">🔥 約${r.calories}kcal</span>
+              <span class="badge badge-time">⏱ ${r.cooking_time}分</span>
+            </div>
+          </div>
+          <p class="recipe-desc">${r.description}</p>
+          ${usedHtml ? `<div class="ingredient-section">
+            <div class="ingredient-label">使う食材</div>
+            <div class="ingredient-tags">${usedHtml}</div>
+          </div>` : ''}
+          ${addHtml}
+        `;
+        recipeList.appendChild(card);
+      });
+
+      results.classList.add('visible');
+    }
+
+    suggestBtn.addEventListener('click', async () => {
+      if (ingredients.length === 0) return;
+
+      setLoadingState(true);
+
+      try {
+        const res = await fetch('/api/suggest-recipes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ingredients })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          showError(data.error || 'エラーが発生しました。もう一度お試しください。');
+        } else {
+          renderRecipes(data.recipes);
+        }
+      } catch (err) {
+        showError('通信エラーが発生しました。しばらくしてから再試行してください。');
+      } finally {
+        setLoadingState(false);
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      ingredients = [];
+      renderTags();
+      results.classList.remove('visible');
+      errorBox.classList.remove('visible');
+      input.focus();
+    });
+  </script>
+
+</body>
+</html>

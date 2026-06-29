@@ -139,6 +139,68 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/fridge")
+def fridge():
+    return render_template("fridge.html")
+
+
+@app.route("/api/suggest-recipes", methods=["POST"])
+def suggest_recipes():
+    import anthropic
+
+    data = request.get_json()
+    ingredients = data.get("ingredients", [])
+
+    if not ingredients:
+        return jsonify({"success": False, "error": "食材を入力してください"})
+
+    if len(ingredients) > 15:
+        return jsonify({"success": False, "error": "食材は最大15個までです"})
+
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    ingredients_str = "、".join(ingredients)
+
+    prompt = f"""冷蔵庫にある食材: {ingredients_str}
+
+これらの食材を使って作れる料理を3〜5品提案してください。
+以下のJSON形式のみで回答してください（JSON以外のテキストは不要）:
+
+{{
+  "recipes": [
+    {{
+      "name": "料理名",
+      "description": "簡単な説明（1〜2文）",
+      "calories": 数値（1人前のカロリー目安、kcal）,
+      "cooking_time": 数値（調理時間の目安、分）,
+      "used_ingredients": ["入力食材から使うもの1", "入力食材から使うもの2"],
+      "additional_ingredients": ["追加で必要な食材（なければ空配列）"]
+    }}
+  ]
+}}
+
+制約:
+- 入力された食材を主役にした料理を提案すること
+- カロリーと調理時間は現実的な数値にすること
+- 日本の家庭料理を中心に、作りやすいものを選ぶこと
+- used_ingredientsは入力食材の中から使うものだけを列挙すること"""
+
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=2048,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        response_text = message.content[0].text
+        json_match = re.search(r'\{[\s\S]*\}', response_text)
+        if not json_match:
+            return jsonify({"success": False, "error": "レシピの生成に失敗しました"})
+        recipes_data = json.loads(json_match.group())
+        return jsonify({"success": True, **recipes_data})
+    except Exception as e:
+        app.logger.error(f"Recipe suggestion error: {e}")
+        return jsonify({"success": False, "error": "AIとの通信に失敗しました。しばらくしてから再試行してください。"})
+
+
 @app.route("/api/trends", methods=["POST"])
 def get_trends():
     data = request.get_json()
