@@ -144,25 +144,91 @@ def fridge():
     return render_template("fridge.html")
 
 
+@app.route("/api/recognize-ingredients", methods=["POST"])
+def recognize_ingredients():
+    import anthropic
+    import base64
+
+    data = request.get_json()
+    image_b64 = data.get("image", "")
+    media_type = data.get("media_type", "image/jpeg")
+
+    if not image_b64:
+        return jsonify({"success": False, "error": "画像データがありません"})
+
+    allowed_types = {"image/jpeg", "image/png", "image/gif", "image/webp"}
+    if media_type not in allowed_types:
+        media_type = "image/jpeg"
+
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+
+    try:
+        message = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=512,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image",
+                            "source": {
+                                "type": "base64",
+                                "media_type": media_type,
+                                "data": image_b64,
+                            },
+                        },
+                        {
+                            "type": "text",
+                            "text": (
+                                "この画像に写っている食材・食品を認識してください。\n"
+                                "JSON形式のみで回答してください（他のテキスト不要）:\n"
+                                '{"ingredients": ["食材1", "食材2", ...]}\n'
+                                "制約:\n"
+                                "- 料理の材料として使える食材・食品のみ列挙\n"
+                                "- 調味料・ドレッシング類は除く\n"
+                                "- 日本語で回答\n"
+                                "- 最大15個まで\n"
+                                "- 食材が見当たらない場合は空配列"
+                            ),
+                        },
+                    ],
+                }
+            ],
+        )
+        response_text = message.content[0].text
+        json_match = re.search(r'\{[\s\S]*\}', response_text)
+        if not json_match:
+            return jsonify({"success": False, "error": "食材を認識できませんでした"})
+        result = json.loads(json_match.group())
+        return jsonify({"success": True, "ingredients": result.get("ingredients", [])})
+    except Exception as e:
+        app.logger.error(f"Image recognition error: {e}")
+        return jsonify({"success": False, "error": "画像認識に失敗しました"})
+
+
 @app.route("/api/suggest-recipes", methods=["POST"])
 def suggest_recipes():
     import anthropic
 
     data = request.get_json()
     ingredients = data.get("ingredients", [])
+    condiments = data.get("condiments", [])
 
     if not ingredients:
         return jsonify({"success": False, "error": "食材を入力してください"})
 
-    if len(ingredients) > 15:
-        return jsonify({"success": False, "error": "食材は最大15個までです"})
+    if len(ingredients) > 20:
+        return jsonify({"success": False, "error": "食材は最大20個までです"})
 
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     ingredients_str = "、".join(ingredients)
+    condiments_str = "、".join(condiments) if condiments else "なし"
 
     prompt = f"""冷蔵庫にある食材: {ingredients_str}
+家にある調味料: {condiments_str}
 
-これらの食材を使って作れる料理を3〜5品提案してください。
+これらの食材と調味料を使って作れる料理を3〜5品提案してください。
 以下のJSON形式のみで回答してください（JSON以外のテキストは不要）:
 
 {{
@@ -172,7 +238,7 @@ def suggest_recipes():
       "description": "簡単な説明（1〜2文）",
       "calories": 数値（1人前のカロリー目安、kcal）,
       "cooking_time": 数値（調理時間の目安、分）,
-      "used_ingredients": ["入力食材から使うもの1", "入力食材から使うもの2"],
+      "used_ingredients": ["入力食材から使うもの（調味料は除く）"],
       "additional_ingredients": ["追加で必要な食材（なければ空配列）"]
     }}
   ]
@@ -180,9 +246,11 @@ def suggest_recipes():
 
 制約:
 - 入力された食材を主役にした料理を提案すること
+- 調味料は手持ちのものを最大限活用すること
 - カロリーと調理時間は現実的な数値にすること
 - 日本の家庭料理を中心に、作りやすいものを選ぶこと
-- used_ingredientsは入力食材の中から使うものだけを列挙すること"""
+- used_ingredientsには食材のみ列挙し、調味料は含めないこと
+- additional_ingredientsには不足する食材（調味料以外）のみ列挙すること"""
 
     try:
         message = client.messages.create(

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>冷蔵庫レシピAI｜今ある食材で今日の料理を提案</title>
+  <title>today,food</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,9 +25,9 @@
     .header-icon { font-size: 48px; display: block; margin-bottom: 8px; }
 
     header h1 {
-      font-size: 26px;
+      font-size: 30px;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 2px;
       margin-bottom: 6px;
     }
 
@@ -43,16 +43,16 @@
       padding: 32px 16px 64px;
     }
 
-    /* 食材入力エリア */
-    .input-section {
+    /* セクション共通 */
+    .section-card {
       background: #fff;
       border-radius: 20px;
       padding: 28px 24px;
       box-shadow: 0 2px 16px rgba(0,0,0,0.07);
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    .input-section h2 {
+    .section-title {
       font-size: 17px;
       font-weight: 700;
       color: #2d2d2d;
@@ -62,13 +62,169 @@
       gap: 8px;
     }
 
-    .input-section h2 .step-badge {
+    .step-badge {
       background: #ff7c3f;
       color: #fff;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 800;
       padding: 3px 10px;
       border-radius: 20px;
+      letter-spacing: 0.5px;
+    }
+
+    /* 画像アップロード */
+    .upload-zone {
+      border: 2px dashed #e0d8ce;
+      border-radius: 16px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #faf9f6;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .upload-zone:hover, .upload-zone.drag-over {
+      border-color: #ff7c3f;
+      background: #fff8f4;
+    }
+
+    .upload-zone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    .upload-icon { font-size: 36px; margin-bottom: 10px; }
+
+    .upload-zone p {
+      font-size: 14px;
+      color: #9a8e80;
+      line-height: 1.6;
+    }
+
+    .upload-zone strong {
+      color: #ff7c3f;
+      font-weight: 700;
+    }
+
+    .upload-zone small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #b0a89a;
+    }
+
+    /* 画像プレビュー */
+    #image-preview-wrap {
+      display: none;
+      position: relative;
+      margin-bottom: 12px;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    #image-preview-wrap.visible { display: block; }
+
+    #image-preview {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+    }
+
+    .preview-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    #image-preview-wrap:hover .preview-overlay { opacity: 1; }
+
+    .preview-overlay span {
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    #remove-image {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    /* 認識中スピナー */
+    #vision-loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0 4px;
+      font-size: 13px;
+      color: #9a8e80;
+    }
+
+    #vision-loading.visible { display: flex; }
+
+    .mini-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #ffe0d0;
+      border-top-color: #ff7c3f;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    #vision-result {
+      display: none;
+      background: #e8f5e9;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #2e7d32;
+      margin-bottom: 8px;
+    }
+
+    #vision-result.visible { display: block; }
+
+    /* 食材テキスト入力 */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 16px 0;
+      color: #c0b8ae;
+      font-size: 12px;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-top: 1px solid #e8e4de;
     }
 
     .input-row {
@@ -114,7 +270,7 @@
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      min-height: 40px;
+      min-height: 38px;
     }
 
     .empty-hint {
@@ -134,7 +290,6 @@
       font-weight: 600;
       padding: 6px 12px;
       border-radius: 20px;
-      cursor: default;
       animation: tagPop 0.2s ease;
     }
 
@@ -152,20 +307,20 @@
     }
     .tag-remove:hover { color: #d95c1a; }
 
-    /* おすすめ食材 */
-    .suggestions {
+    /* クイック追加 */
+    .quick-add {
       margin-top: 16px;
       padding-top: 14px;
       border-top: 1px solid #f0ece6;
     }
 
-    .suggestions p {
+    .quick-add p {
       font-size: 12px;
       color: #9a8e80;
       margin-bottom: 8px;
     }
 
-    .suggestion-chips {
+    .chips-row {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
@@ -180,9 +335,36 @@
       border-radius: 20px;
       cursor: pointer;
       transition: all 0.15s;
+      user-select: none;
     }
 
     .chip:hover { background: #ffefe6; border-color: #ffcfb3; color: #d95c1a; }
+
+    /* 調味料セクション */
+    .condiment-chip {
+      background: #f5f0ea;
+      border: 1.5px solid #e0d8ce;
+      color: #6b5e50;
+      font-size: 13px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+
+    .condiment-chip.selected {
+      background: #fff3ed;
+      border-color: #ffcfb3;
+      color: #d95c1a;
+      font-weight: 600;
+    }
+
+    .condiment-chip.selected::before {
+      content: '✓ ';
+    }
+
+    .condiment-chip:hover { background: #ffefe6; border-color: #ffcfb3; color: #d95c1a; }
 
     /* 提案ボタン */
     #suggest-btn {
@@ -202,6 +384,7 @@
       align-items: center;
       justify-content: center;
       gap: 10px;
+      margin-bottom: 20px;
     }
 
     #suggest-btn:hover:not(:disabled) {
@@ -212,7 +395,7 @@
     #suggest-btn:active:not(:disabled) { transform: translateY(0); }
 
     #suggest-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.45;
       cursor: not-allowed;
       transform: none;
     }
@@ -272,7 +455,6 @@
       border-radius: 20px;
     }
 
-    /* レシピカード */
     .recipe-card {
       background: #fff;
       border-radius: 20px;
@@ -353,16 +535,11 @@
       font-size: 12px;
       font-weight: 700;
       color: #9a8e80;
-      text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
 
-    .ingredient-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
+    .ingredient-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 
     .ing-tag {
       font-size: 12px;
@@ -388,15 +565,15 @@
       background: #fff5f5;
       border: 1.5px solid #ffcdd2;
       border-radius: 16px;
-      padding: 20px 24px;
+      padding: 16px 20px;
       color: #c62828;
       font-size: 14px;
       text-align: center;
+      margin-bottom: 16px;
     }
 
     .error-box.visible { display: block; }
 
-    /* リセット */
     .reset-btn {
       display: block;
       margin: 24px auto 0;
@@ -426,37 +603,61 @@
 
   <header>
     <span class="header-icon">🍳</span>
-    <h1>冷蔵庫レシピAI</h1>
+    <h1>today,food</h1>
     <p>今ある食材を入力するだけで、今日作れる料理を提案します</p>
   </header>
 
   <main>
 
-    <!-- 食材入力 -->
-    <div class="input-section">
-      <h2>
+    <!-- STEP 1: 食材 -->
+    <div class="section-card">
+      <div class="section-title">
         <span class="step-badge">STEP 1</span>
-        冷蔵庫にある食材を入力
-      </h2>
+        冷蔵庫の食材を登録
+      </div>
+
+      <!-- 画像アップロード -->
+      <div class="upload-zone" id="upload-zone">
+        <input type="file" id="image-input" accept="image/*" capture="environment" />
+        <div class="upload-icon">📷</div>
+        <p><strong>写真をタップして撮影 / アップロード</strong></p>
+        <small>冷蔵庫・食材の写真からAIが自動認識します</small>
+      </div>
+
+      <div id="image-preview-wrap">
+        <img id="image-preview" src="" alt="プレビュー" />
+        <button id="remove-image">×</button>
+        <div class="preview-overlay"><span>写真を変更する</span></div>
+      </div>
+
+      <div id="vision-loading">
+        <div class="mini-spinner"></div>
+        <span>写真から食材を認識しています...</span>
+      </div>
+
+      <div id="vision-result"></div>
+
+      <!-- テキスト入力 -->
+      <div class="divider">または手動で追加</div>
 
       <div class="input-row">
         <input
           id="ingredient-input"
           type="text"
-          placeholder="例: 卵、玉ねぎ、鶏むね肉..."
+          placeholder="例: 卵、鶏むね肉..."
           maxlength="30"
           autocomplete="off"
         />
-        <button class="add-btn" id="add-btn" title="追加">＋</button>
+        <button class="add-btn" id="add-btn">＋</button>
       </div>
 
       <div id="tags-container">
         <span class="empty-hint">食材を追加してください</span>
       </div>
 
-      <div class="suggestions">
-        <p>よく使う食材をタップして追加:</p>
-        <div class="suggestion-chips">
+      <div class="quick-add">
+        <p>よく使う食材:</p>
+        <div class="chips-row">
           <span class="chip" data-val="卵">🥚 卵</span>
           <span class="chip" data-val="玉ねぎ">🧅 玉ねぎ</span>
           <span class="chip" data-val="鶏むね肉">🍗 鶏むね肉</span>
@@ -473,6 +674,46 @@
       </div>
     </div>
 
+    <!-- STEP 2: 調味料 -->
+    <div class="section-card">
+      <div class="section-title">
+        <span class="step-badge">STEP 2</span>
+        家にある調味料を選択
+      </div>
+      <p style="font-size:13px;color:#9a8e80;margin-bottom:12px;">タップでON/OFF。AIがレシピ提案に活用します。</p>
+      <div class="chips-row" id="condiments-container">
+        <span class="condiment-chip selected" data-val="醤油">醤油</span>
+        <span class="condiment-chip selected" data-val="みりん">みりん</span>
+        <span class="condiment-chip selected" data-val="料理酒">料理酒</span>
+        <span class="condiment-chip selected" data-val="砂糖">砂糖</span>
+        <span class="condiment-chip selected" data-val="塩">塩</span>
+        <span class="condiment-chip selected" data-val="こしょう">こしょう</span>
+        <span class="condiment-chip selected" data-val="酢">酢</span>
+        <span class="condiment-chip selected" data-val="みそ">みそ</span>
+        <span class="condiment-chip selected" data-val="マヨネーズ">マヨネーズ</span>
+        <span class="condiment-chip selected" data-val="ケチャップ">ケチャップ</span>
+        <span class="condiment-chip selected" data-val="ごま油">ごま油</span>
+        <span class="condiment-chip selected" data-val="オリーブオイル">オリーブオイル</span>
+        <span class="condiment-chip selected" data-val="めんつゆ">めんつゆ</span>
+        <span class="condiment-chip selected" data-val="ポン酢">ポン酢</span>
+        <span class="condiment-chip" data-val="ウスターソース">ウスターソース</span>
+        <span class="condiment-chip" data-val="コンソメ">コンソメ</span>
+        <span class="condiment-chip" data-val="鶏がらスープの素">鶏がらスープの素</span>
+        <span class="condiment-chip" data-val="片栗粉">片栗粉</span>
+        <span class="condiment-chip" data-val="小麦粉">小麦粉</span>
+        <span class="condiment-chip" data-val="バター">バター</span>
+        <span class="condiment-chip" data-val="にんにく">にんにく</span>
+        <span class="condiment-chip" data-val="しょうが">しょうが</span>
+        <span class="condiment-chip" data-val="白だし">白だし</span>
+        <span class="condiment-chip" data-val="豆板醤">豆板醤</span>
+        <span class="condiment-chip" data-val="オイスターソース">オイスターソース</span>
+      </div>
+    </div>
+
+    <!-- エラー -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- 提案ボタン -->
     <button id="suggest-btn" disabled>
       🍽️ レシピを提案してもらう
     </button>
@@ -482,9 +723,6 @@
       <div class="spinner"></div>
       <p>AIがレシピを考えています...</p>
     </div>
-
-    <!-- エラー -->
-    <div class="error-box" id="error-box"></div>
 
     <!-- 結果 -->
     <div id="results">
@@ -499,22 +737,31 @@
   </main>
 
   <footer>
-    <p>© 2026 冷蔵庫レシピAI｜食材を無駄なく、毎日おいしく</p>
+    <p>© 2026 today,food｜食材を無駄なく、毎日おいしく</p>
   </footer>
 
   <script>
-    const input = document.getElementById('ingredient-input');
-    const addBtn = document.getElementById('add-btn');
-    const tagsContainer = document.getElementById('tags-container');
-    const suggestBtn = document.getElementById('suggest-btn');
-    const loading = document.getElementById('loading');
-    const results = document.getElementById('results');
-    const errorBox = document.getElementById('error-box');
-    const recipeList = document.getElementById('recipe-list');
-    const resetBtn = document.getElementById('reset-btn');
+    /* ─── 要素取得 ─── */
+    const imageInput     = document.getElementById('image-input');
+    const uploadZone     = document.getElementById('upload-zone');
+    const imagePreviewWrap = document.getElementById('image-preview-wrap');
+    const imagePreview   = document.getElementById('image-preview');
+    const removeImageBtn = document.getElementById('remove-image');
+    const visionLoading  = document.getElementById('vision-loading');
+    const visionResult   = document.getElementById('vision-result');
+    const ingredientInput = document.getElementById('ingredient-input');
+    const addBtn         = document.getElementById('add-btn');
+    const tagsContainer  = document.getElementById('tags-container');
+    const suggestBtn     = document.getElementById('suggest-btn');
+    const loading        = document.getElementById('loading');
+    const results        = document.getElementById('results');
+    const errorBox       = document.getElementById('error-box');
+    const recipeList     = document.getElementById('recipe-list');
+    const resetBtn       = document.getElementById('reset-btn');
 
     let ingredients = [];
 
+    /* ─── 食材タグ ─── */
     function renderTags() {
       tagsContainer.innerHTML = '';
       if (ingredients.length === 0) {
@@ -534,47 +781,140 @@
     function addIngredient(val) {
       const trimmed = val.trim();
       if (!trimmed || ingredients.includes(trimmed)) return;
-      if (ingredients.length >= 15) {
-        showError('食材は最大15個まで入力できます');
-        return;
-      }
+      if (ingredients.length >= 20) { showError('食材は最大20個まで入力できます'); return; }
       ingredients.push(trimmed);
       renderTags();
     }
 
-    addBtn.addEventListener('click', () => {
-      addIngredient(input.value);
-      input.value = '';
-      input.focus();
+    addBtn.addEventListener('click', () => { addIngredient(ingredientInput.value); ingredientInput.value = ''; ingredientInput.focus(); });
+
+    ingredientInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { addIngredient(ingredientInput.value); ingredientInput.value = ''; }
     });
 
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        addIngredient(input.value);
-        input.value = '';
-      }
-    });
-
-    tagsContainer.addEventListener('click', (e) => {
+    tagsContainer.addEventListener('click', e => {
       if (e.target.classList.contains('tag-remove')) {
-        const idx = parseInt(e.target.dataset.index);
-        ingredients.splice(idx, 1);
+        ingredients.splice(parseInt(e.target.dataset.index), 1);
         renderTags();
       }
     });
 
     document.querySelectorAll('.chip').forEach(chip => {
-      chip.addEventListener('click', () => {
-        addIngredient(chip.dataset.val);
-      });
+      chip.addEventListener('click', () => addIngredient(chip.dataset.val));
     });
 
+    /* ─── 調味料トグル ─── */
+    document.querySelectorAll('.condiment-chip').forEach(chip => {
+      chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    });
+
+    function getSelectedCondiments() {
+      return [...document.querySelectorAll('.condiment-chip.selected')].map(c => c.dataset.val);
+    }
+
+    /* ─── 画像認識 ─── */
+    imageInput.addEventListener('change', async e => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // プレビュー表示
+      const reader = new FileReader();
+      reader.onload = ev => {
+        imagePreview.src = ev.target.result;
+        imagePreviewWrap.classList.add('visible');
+        uploadZone.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+
+      // 認識開始
+      visionResult.classList.remove('visible');
+      visionLoading.classList.add('visible');
+
+      try {
+        const base64 = await fileToBase64(file);
+        const mediaType = file.type || 'image/jpeg';
+
+        const res = await fetch('/api/recognize-ingredients', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, media_type: mediaType })
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.ingredients && data.ingredients.length > 0) {
+          const added = [];
+          data.ingredients.forEach(ing => {
+            if (!ingredients.includes(ing) && ingredients.length < 20) {
+              ingredients.push(ing);
+              added.push(ing);
+            }
+          });
+          renderTags();
+          visionResult.textContent = `✓ ${data.ingredients.length}個の食材を認識しました: ${data.ingredients.join('、')}`;
+          visionResult.classList.add('visible');
+        } else {
+          visionResult.style.background = '#fff3e0';
+          visionResult.style.borderColor = '#ffe082';
+          visionResult.style.color = '#e65100';
+          visionResult.textContent = data.error || '食材を認識できませんでした。手動で追加してください。';
+          visionResult.classList.add('visible');
+        }
+      } catch (err) {
+        visionResult.style.background = '#fff5f5';
+        visionResult.style.borderColor = '#ffcdd2';
+        visionResult.style.color = '#c62828';
+        visionResult.textContent = '認識中にエラーが発生しました。手動で追加してください。';
+        visionResult.classList.add('visible');
+      } finally {
+        visionLoading.classList.remove('visible');
+      }
+    });
+
+    removeImageBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      imagePreviewWrap.classList.remove('visible');
+      uploadZone.style.display = '';
+      imageInput.value = '';
+      visionResult.classList.remove('visible');
+      visionLoading.classList.remove('visible');
+    });
+
+    // ドラッグ&ドロップ
+    uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+    uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+    uploadZone.addEventListener('drop', e => {
+      e.preventDefault();
+      uploadZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        imageInput.files = dt.files;
+        imageInput.dispatchEvent(new Event('change'));
+      }
+    });
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const b64 = e.target.result.split(',')[1];
+          resolve(b64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    /* ─── エラー表示 ─── */
     function showError(msg) {
       errorBox.textContent = msg;
       errorBox.classList.add('visible');
       setTimeout(() => errorBox.classList.remove('visible'), 4000);
     }
 
+    /* ─── レシピ提案 ─── */
     function setLoadingState(on) {
       loading.classList.toggle('visible', on);
       suggestBtn.disabled = on;
@@ -612,28 +952,25 @@
             </div>
           </div>
           <p class="recipe-desc">${r.description}</p>
-          ${usedHtml ? `<div class="ingredient-section">
-            <div class="ingredient-label">使う食材</div>
-            <div class="ingredient-tags">${usedHtml}</div>
-          </div>` : ''}
+          ${usedHtml ? `<div class="ingredient-section"><div class="ingredient-label">使う食材</div><div class="ingredient-tags">${usedHtml}</div></div>` : ''}
           ${addHtml}
         `;
         recipeList.appendChild(card);
       });
 
       results.classList.add('visible');
+      results.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     suggestBtn.addEventListener('click', async () => {
       if (ingredients.length === 0) return;
-
       setLoadingState(true);
 
       try {
         const res = await fetch('/api/suggest-recipes', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ingredients })
+          body: JSON.stringify({ ingredients, condiments: getSelectedCondiments() })
         });
 
         const data = await res.json();
@@ -643,7 +980,7 @@
         } else {
           renderRecipes(data.recipes);
         }
-      } catch (err) {
+      } catch {
         showError('通信エラーが発生しました。しばらくしてから再試行してください。');
       } finally {
         setLoadingState(false);
@@ -655,7 +992,11 @@
       renderTags();
       results.classList.remove('visible');
       errorBox.classList.remove('visible');
-      input.focus();
+      visionResult.classList.remove('visible');
+      imagePreviewWrap.classList.remove('visible');
+      uploadZone.style.display = '';
+      imageInput.value = '';
+      ingredientInput.focus();
     });
   </script>
 
