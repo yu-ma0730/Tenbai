@@ -9,29 +9,29 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
-      background: #0d0d1a;
-      color: #e8e8f0;
+      background: linear-gradient(160deg, #fff0f6 0%, #fce4ec 60%, #f8bbd0 100%);
+      color: #3d1c2e;
       min-height: 100vh;
     }
 
     /* ヘッダー */
     header {
       text-align: center;
-      padding: 48px 24px 32px;
-      background: linear-gradient(180deg, #1a0a2e 0%, #0d0d1a 100%);
+      padding: 40px 24px 28px;
+      background: linear-gradient(180deg, rgba(255,182,193,0.45) 0%, transparent 100%);
     }
 
     .header-icon {
-      font-size: 56px;
+      font-size: 48px;
       display: block;
-      margin-bottom: 12px;
-      filter: drop-shadow(0 0 20px rgba(180, 100, 255, 0.6));
+      margin-bottom: 10px;
+      filter: drop-shadow(0 0 12px rgba(233, 30, 99, 0.4));
     }
 
     header h1 {
       font-size: 32px;
       font-weight: 900;
-      background: linear-gradient(135deg, #e0a0ff, #a060ff, #e94560);
+      background: linear-gradient(135deg, #c2185b, #e91e63, #ad1457);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -41,48 +41,75 @@
 
     header p {
       font-size: 14px;
-      color: #9090b0;
+      color: #a0607a;
       letter-spacing: 2px;
     }
 
     /* ヒーロー */
     .hero {
-      text-align: center;
-      padding: 48px 24px;
-      max-width: 640px;
+      max-width: 700px;
       margin: 0 auto;
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 36px;
+    }
+
+    /* YUMA画像 */
+    .hero-image-wrap {
+      width: 240px;
+      height: 240px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 4px solid rgba(233, 30, 99, 0.25);
+      box-shadow:
+        0 0 0 8px rgba(233, 30, 99, 0.08),
+        0 12px 40px rgba(233, 30, 99, 0.2);
+      flex-shrink: 0;
+    }
+
+    .hero-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+    }
+
+    .hero-text {
+      text-align: center;
     }
 
     .hero-badge {
       display: inline-block;
-      background: rgba(233, 69, 96, 0.15);
-      border: 1px solid rgba(233, 69, 96, 0.4);
-      color: #e94560;
+      background: rgba(233, 30, 99, 0.1);
+      border: 1px solid rgba(233, 30, 99, 0.25);
+      color: #c2185b;
       font-size: 12px;
       font-weight: 700;
       padding: 6px 16px;
       border-radius: 20px;
       letter-spacing: 2px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .hero h2 {
-      font-size: 26px;
+      font-size: 24px;
       font-weight: 800;
-      line-height: 1.5;
+      line-height: 1.6;
       margin-bottom: 16px;
-      color: #f0f0ff;
+      color: #3d1c2e;
     }
 
     .hero h2 span {
-      color: #c080ff;
+      color: #e91e63;
     }
 
     .hero p {
       font-size: 15px;
-      color: #9090b0;
+      color: #7a4058;
       line-height: 1.8;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
 
     /* LINEボタン */
@@ -115,31 +142,32 @@
 
     .line-free {
       font-size: 12px;
-      color: #707090;
+      color: #a0607a;
       margin-top: 12px;
     }
 
     /* 占いの流れ */
     .flow {
-      background: rgba(255,255,255,0.03);
-      border-top: 1px solid rgba(255,255,255,0.06);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(255, 255, 255, 0.5);
+      border-top: 1px solid rgba(233, 30, 99, 0.12);
+      border-bottom: 1px solid rgba(233, 30, 99, 0.12);
       padding: 48px 24px;
+      backdrop-filter: blur(8px);
     }
 
     .flow h3 {
       text-align: center;
       font-size: 18px;
       font-weight: 700;
-      color: #c080ff;
+      color: #c2185b;
       letter-spacing: 2px;
-      margin-bottom: 36px;
+      margin-bottom: 32px;
     }
 
     .steps {
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
       max-width: 480px;
       margin: 0 auto;
     }
@@ -148,8 +176,8 @@
       display: flex;
       align-items: flex-start;
       gap: 16px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid rgba(233, 30, 99, 0.12);
       border-radius: 16px;
       padding: 20px;
     }
@@ -158,7 +186,7 @@
       width: 36px;
       height: 36px;
       min-width: 36px;
-      background: linear-gradient(135deg, #a060ff, #e94560);
+      background: linear-gradient(135deg, #e91e63, #c2185b);
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -171,67 +199,32 @@
     .step-text strong {
       display: block;
       font-size: 15px;
-      color: #f0f0ff;
+      color: #3d1c2e;
       margin-bottom: 4px;
     }
 
     .step-text span {
       font-size: 13px;
-      color: #8080a0;
+      color: #a0607a;
     }
-
-    /* 占いコンテンツ */
-    .features {
-      padding: 48px 24px;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    .features h3 {
-      text-align: center;
-      font-size: 18px;
-      font-weight: 700;
-      color: #c080ff;
-      letter-spacing: 2px;
-      margin-bottom: 28px;
-    }
-
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .feature-card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 20px;
-      text-align: center;
-    }
-
-    .feature-card .icon { font-size: 28px; display: block; margin-bottom: 8px; }
-    .feature-card strong { display: block; font-size: 14px; color: #f0f0ff; margin-bottom: 4px; }
-    .feature-card span { font-size: 12px; color: #8080a0; }
 
     /* CTA */
     .cta {
       text-align: center;
       padding: 48px 24px 64px;
-      background: linear-gradient(180deg, #0d0d1a 0%, #1a0a2e 100%);
     }
 
     .cta p {
       font-size: 20px;
       font-weight: 700;
-      color: #f0f0ff;
+      color: #3d1c2e;
       margin-bottom: 8px;
     }
 
     .cta small {
       display: block;
       font-size: 13px;
-      color: #8080a0;
+      color: #a0607a;
       margin-bottom: 28px;
     }
 
@@ -239,8 +232,24 @@
       text-align: center;
       padding: 20px;
       font-size: 12px;
-      color: #505070;
-      border-top: 1px solid rgba(255,255,255,0.05);
+      color: #c090a0;
+      border-top: 1px solid rgba(233, 30, 99, 0.1);
+    }
+
+    /* タブレット以上: 画像とテキストを横並び */
+    @media (min-width: 600px) {
+      .hero {
+        flex-direction: row;
+        align-items: center;
+        text-align: left;
+      }
+      .hero-image-wrap {
+        width: 260px;
+        height: 260px;
+      }
+      .hero-text {
+        text-align: left;
+      }
     }
   </style>
 </head>
@@ -253,20 +262,25 @@
   </header>
 
   <section class="hero">
-    <span class="hero-badge">✨ 完全無料</span>
-    <h2>毎日届く<span>今日の運勢</span>で<br>人生を好転させよう</h2>
-    <p>
-      生まれ持った星座と血液型から<br>
-      あなただけの運勢・ラッキーアイテム・<br>
-      今日のアドバイスをお届けします。
-    </p>
-    <a href="https://line.me/R/ti/p/@549mqqzs" class="line-btn">
-      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
-      </svg>
-      LINEで無料占いを始める
-    </a>
-    <p class="line-free">登録・占いともに無料です</p>
+    <div class="hero-image-wrap">
+      <img src="{{ url_for('static', filename='images/yuma.jpg') }}" alt="占い師YUMA">
+    </div>
+    <div class="hero-text">
+      <span class="hero-badge">✨ 完全無料</span>
+      <h2>毎日届く<span>今日の運勢</span>で<br>人生を好転させよう</h2>
+      <p>
+        生まれ持った星座と血液型から<br>
+        あなただけの運勢・ラッキーアイテム・<br>
+        今日のアドバイスをお届けします。
+      </p>
+      <a href="https://line.me/R/ti/p/@549mqqzs" class="line-btn">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/>
+        </svg>
+        LINEで無料占いを始める
+      </a>
+      <p class="line-free">登録・占いともに無料です</p>
+    </div>
   </section>
 
   <section class="flow">
@@ -290,12 +304,11 @@
         <div class="step-num">3</div>
         <div class="step-text">
           <strong>今日の運勢が届く</strong>
-          <span>総合運・恋愛・仕事・金運＋ラッキーアイテムをお届け</span>
+          <span>恋愛運・ラッキーカラー・今日のアドバイスをお届け</span>
         </div>
       </div>
     </div>
   </section>
-
 
   <section class="cta">
     <p>今すぐ運勢を確認しよう</p>
