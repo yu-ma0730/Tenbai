@@ -4,6 +4,8 @@
     { "src": "app.py", "use": "@vercel/python" }
   ],
   "routes": [
+    { "src": "/webhook", "dest": "app.py", "methods": ["POST", "GET"] },
+    { "src": "/static/(.*)", "dest": "app.py" },
     { "src": "/(.*)", "dest": "app.py" }
   ]
 }
