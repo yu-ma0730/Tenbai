@@ -53,7 +53,7 @@ def welcome_message() -> list:
     return [
         {
             "type": "text",
-            "text": "はじめまして！\n星座と血液型であなたの運勢を占います✨\n\nまず、生まれた月を教えてください。\n例：「3月」「12月」",
+            "text": "はじめまして！\n星座と血液型であなたの運勢を占います✨\n\n生まれた月と日を教えてください。\n例：「7月23日」「12月25日」",
         }
     ]
 
@@ -81,26 +81,31 @@ def ask_blood_type_message(zodiac: str) -> list:
     ]
 
 
-def parse_month(text: str) -> int | None:
-    """「3月」「3」「03」などから月を抽出"""
+def parse_birthday(text: str):
+    """「7月23日」「7/23」「7-23」などから月と日を抽出"""
     import re
-    m = re.search(r"(\d{1,2})", text)
+    m = re.search(r"(\d{1,2})[月/\.\-](\d{1,2})[日]?", text)
     if m:
         month = int(m.group(1))
-        if 1 <= month <= 12:
-            return month
-    return None
+        day = int(m.group(2))
+        if 1 <= month <= 12 and 1 <= day <= 31:
+            return month, day
+    return None, None
 
 
 def parse_blood_type(text: str) -> str | None:
-    text = text.upper().replace("型", "").strip()
-    if text in ("A", "B", "O", "AB"):
-        return text
+    import re
+    text_upper = text.upper()
+    if re.search(r'AB', text_upper):
+        return "AB"
+    for bt in ("A", "B", "O"):
+        if re.search(rf'(?<![A-Z]){bt}(?![A-Z])', text_upper):
+            return bt
     return None
 
 
 def handle_event(event: dict, cta_url: str) -> None:
-    from api.fortune import get_zodiac_from_month, generate_fortune, build_flex_message
+    from api.fortune import get_zodiac, generate_fortune, build_flex_message
 
     event_type = event.get("type")
     reply_token = event.get("replyToken")
@@ -120,11 +125,11 @@ def handle_event(event: dict, cta_url: str) -> None:
     step = state.get("step", "ask_month")
 
     if step == "ask_month":
-        month = parse_month(text)
-        if not month:
-            reply(reply_token, [{"type": "text", "text": "月を数字で教えてください。\n例：「3月」「12月」"}])
+        month, day = parse_birthday(text)
+        if not month or not day:
+            reply(reply_token, [{"type": "text", "text": "生まれた月と日を教えてください。\n例：「7月23日」「12月25日」"}])
             return
-        zodiac = get_zodiac_from_month(month)
+        zodiac = get_zodiac(month, day)
         set_user_state(user_id, {"step": "ask_blood", "zodiac": zodiac})
         reply(reply_token, ask_blood_type_message(zodiac))
 
@@ -147,6 +152,6 @@ def handle_event(event: dict, cta_url: str) -> None:
     else:
         if "占い" in text or "うらない" in text:
             set_user_state(user_id, {"step": "ask_month"})
-            reply(reply_token, [{"type": "text", "text": "生まれた月を教えてください。\n例：「3月」「12月」"}])
+            reply(reply_token, [{"type": "text", "text": "生まれた月と日を教えてください。\n例：「7月23日」「12月25日」"}])
         else:
             reply(reply_token, [{"type": "text", "text": "「占い」と送ると今日の運勢を占えます🔮"}])
