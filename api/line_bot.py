@@ -10,6 +10,9 @@ LINE_API = "https://api.line.me/v2/bot/message"
 # ユーザーの入力状態を一時保存（本番ではRedis/DBに置き換える）
 _user_state: dict = {}
 
+# ユーザーの占いプロフィール（星座・血液型）を永続保存（本番ではRedis/DBに置き換える）
+_user_profile: dict = {}
+
 
 def verify_signature(body: bytes, signature: str) -> bool:
     channel_secret = os.environ.get("LINE_CHANNEL_SECRET", "")
@@ -49,6 +52,14 @@ def clear_user_state(user_id: str):
     _user_state.pop(user_id, None)
 
 
+def get_user_profile(user_id: str) -> dict | None:
+    return _user_profile.get(user_id)
+
+
+def save_user_profile(user_id: str, profile: dict):
+    _user_profile[user_id] = profile
+
+
 def welcome_message() -> list:
     return [
         {
@@ -56,6 +67,19 @@ def welcome_message() -> list:
             "text": "はじめまして！\n星座と血液型であなたの運勢を占います✨\n\n生まれた月と日を教えてください。\n例：「7月23日」「12月25日」",
         }
     ]
+
+
+def welcome_back_message() -> list:
+    return [
+        {
+            "type": "text",
+            "text": "おかえりなさい！\n生年月日と血液型は登録済みなので、「占い」と送るだけで今日の運勢を占えます🔮",
+        }
+    ]
+
+
+def ask_fortune_prompt_message() -> list:
+    return [{"type": "text", "text": "「占い」と送ると今日の運勢を占えます🔮"}]
 
 
 def ask_blood_type_message(zodiac: str) -> list:
@@ -104,8 +128,19 @@ def parse_blood_type(text: str) -> str | None:
     return None
 
 
+def _send_fortune(user_id: str, zodiac: str, blood_type: str, cta_url: str) -> None:
+    from api.fortune import generate_fortune, build_flex_message
+
+    fortune = generate_fortune(zodiac, blood_type)
+    flex = build_flex_message(zodiac, blood_type, fortune, cta_url)
+    push(user_id, [flex, {
+        "type": "text",
+        "text": "また占いたいときは「占い」と送ってください✨",
+    }])
+
+
 def handle_event(event: dict, cta_url: str) -> None:
-    from api.fortune import get_zodiac, generate_fortune, build_flex_message
+    from api.fortune import get_zodiac
 
     event_type = event.get("type")
     reply_token = event.get("replyToken")
@@ -113,8 +148,13 @@ def handle_event(event: dict, cta_url: str) -> None:
     user_id = source.get("userId", "")
 
     if event_type == "follow":
-        set_user_state(user_id, {"step": "ask_month"})
-        reply(reply_token, welcome_message())
+        clear_user_state(user_id)
+        profile = get_user_profile(user_id)
+        if profile:
+            reply(reply_token, welcome_back_message())
+        else:
+            set_user_state(user_id, {"step": "ask_month"})
+            reply(reply_token, welcome_message())
         return
 
     if event_type != "message" or event.get("message", {}).get("type") != "text":
@@ -122,7 +162,7 @@ def handle_event(event: dict, cta_url: str) -> None:
 
     text = event["message"]["text"].strip()
     state = get_user_state(user_id)
-    step = state.get("step", "ask_month")
+    step = state.get("step")
 
     if step == "ask_month":
         month, day = parse_birthday(text)
@@ -139,19 +179,20 @@ def handle_event(event: dict, cta_url: str) -> None:
             reply(reply_token, [{"type": "text", "text": "A型 / B型 / O型 / AB型 のどれかを教えてください。"}])
             return
         zodiac = state.get("zodiac", "牡羊座")
-        reply(reply_token, [{"type": "text", "text": "占い中です...少々お待ちください🔮"}])
         clear_user_state(user_id)
+        save_user_profile(user_id, {"zodiac": zodiac, "blood_type": blood_type})
 
-        fortune = generate_fortune(zodiac, blood_type)
-        flex = build_flex_message(zodiac, blood_type, fortune, cta_url)
-        push(user_id, [flex, {
-            "type": "text",
-            "text": "また占いたいときは「占い」と送ってください✨",
-        }])
+        reply(reply_token, [{"type": "text", "text": "占い中です...少々お待ちください🔮\n（生年月日と血液型は次回から省略できます）"}])
+        _send_fortune(user_id, zodiac, blood_type, cta_url)
 
     else:
         if "占い" in text or "うらない" in text:
-            set_user_state(user_id, {"step": "ask_month"})
-            reply(reply_token, [{"type": "text", "text": "生まれた月と日を教えてください。\n例：「7月23日」「12月25日」"}])
+            profile = get_user_profile(user_id)
+            if profile:
+                reply(reply_token, [{"type": "text", "text": "占い中です...少々お待ちください🔮"}])
+                _send_fortune(user_id, profile["zodiac"], profile["blood_type"], cta_url)
+            else:
+                set_user_state(user_id, {"step": "ask_month"})
+                reply(reply_token, [{"type": "text", "text": "生まれた月と日を教えてください。\n例：「7月23日」「12月25日」"}])
         else:
-            reply(reply_token, [{"type": "text", "text": "「占い」と送ると今日の運勢を占えます🔮"}])
+            reply(reply_token, ask_fortune_prompt_message())
