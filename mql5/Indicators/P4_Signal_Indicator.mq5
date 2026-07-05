@@ -57,6 +57,16 @@
 #property indicator_color9  clrRed
 #property indicator_width9  2
 
+#property indicator_label10 "EMA Divergence Warning"
+#property indicator_type10  DRAW_ARROW
+#property indicator_color10 clrOrange
+#property indicator_width10 2
+
+#property indicator_label11 "High Rejection Warning"
+#property indicator_type11  DRAW_ARROW
+#property indicator_color11 clrPurple
+#property indicator_width11 2
+
 //--- Input parameters
 input int EMA10_Period = 10;
 input int EMA20_Period = 20;
@@ -64,7 +74,10 @@ input int EMA40_Period = 40;
 input int EMA80_Period = 80;
 input int BB_Period = 20;
 input double BB_Deviation = 2.0;
+input double EMA_Divergence_Threshold = 0.003;  // 0.3% threshold
 input bool ShowSignalArrows = true;
+input bool ShowDivergenceWarning = true;
+input bool ShowHighRejectionWarning = true;
 
 //--- Buffers
 double ema10Buffer[];
@@ -76,6 +89,8 @@ double bbLowerBuffer[];
 double bbMiddleBuffer[];
 double longSignalBuffer[];
 double shortSignalBuffer[];
+double divergenceBuffer[];
+double highRejectionBuffer[];
 
 //--- Handle for existing indicator
 int ema10Handle, ema20Handle, ema40Handle, ema80Handle;
@@ -96,6 +111,8 @@ int OnInit()
    SetIndexBuffer(6, bbMiddleBuffer, INDICATOR_DATA);
    SetIndexBuffer(7, longSignalBuffer, INDICATOR_DATA);
    SetIndexBuffer(8, shortSignalBuffer, INDICATOR_DATA);
+   SetIndexBuffer(9, divergenceBuffer, INDICATOR_DATA);
+   SetIndexBuffer(10, highRejectionBuffer, INDICATOR_DATA);
 
    // Create handles for iMA (EMA)
    ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA);
@@ -158,6 +175,22 @@ int OnCalculate(const int rates_total,
    {
       longSignalBuffer[i] = EMPTY_VALUE;
       shortSignalBuffer[i] = EMPTY_VALUE;
+      divergenceBuffer[i] = EMPTY_VALUE;
+      highRejectionBuffer[i] = EMPTY_VALUE;
+
+      // Calculate EMA divergence (distance as percentage)
+      double divergencePercent = 0;
+      if (ema10Buffer[i] != 0)
+         divergencePercent = MathAbs(close[i] - ema10Buffer[i]) / ema10Buffer[i];
+
+      // Check for EMA divergence warning (> 0.3%)
+      if (divergencePercent > EMA_Divergence_Threshold && ShowDivergenceWarning)
+      {
+         if (close[i] > ema10Buffer[i])
+            divergenceBuffer[i] = low[i] - 20 * _Point;  // Price above EMA
+         else
+            divergenceBuffer[i] = high[i] + 20 * _Point; // Price below EMA
+      }
 
       // Check Perfect Order for LONG
       if (ema10Buffer[i] > ema20Buffer[i] &&
@@ -168,7 +201,7 @@ int OnCalculate(const int rates_total,
          if (close[i] > bbLowerBuffer[i] &&
              close[i-1] <= bbLowerBuffer[i-1])
          {
-            if (ShowSignalArrows)
+            if (ShowSignalArrows && divergencePercent <= EMA_Divergence_Threshold)
                longSignalBuffer[i] = low[i] - 10 * _Point;
          }
       }
@@ -182,13 +215,53 @@ int OnCalculate(const int rates_total,
          if (close[i] < bbUpperBuffer[i] &&
              close[i-1] >= bbUpperBuffer[i-1])
          {
-            if (ShowSignalArrows)
-               shortSignalBuffer[i] = high[i] + 10 * _Point;
+            // Check for high rejection signal (failing to update higher highs)
+            bool highRejection = CheckHighRejection(i, 50);  // Look back 50 bars
+
+            if (ShowSignalArrows && divergencePercent <= EMA_Divergence_Threshold)
+            {
+               if (highRejection && ShowHighRejectionWarning)
+                  highRejectionBuffer[i] = high[i] + 20 * _Point;
+               else
+                  shortSignalBuffer[i] = high[i] + 10 * _Point;
+            }
          }
       }
    }
 
    return rates_total;
+}
+
+//+------------------------------------------------------------------+
+//| Check High Rejection (Higher High Update Failure)                |
+//+------------------------------------------------------------------+
+bool CheckHighRejection(const int currentBar, const int lookbackPeriod)
+{
+   // Check if recent highs are declining (high rejection pattern)
+   if (currentBar < lookbackPeriod) return false;
+
+   double recentHighs[];
+   int highsCount = 0;
+
+   // Get recent 3 significant highs
+   for (int i = currentBar - 1; i >= currentBar - lookbackPeriod && highsCount < 3; i--)
+   {
+      if (i > 0)
+      {
+         // Simple high rejection: recent bar's high < previous significant high
+         if (High[i] > High[i-1] && High[i] > High[i-5])
+         {
+            if (highsCount == 0 || High[i] < recentHighs[highsCount-1])
+               recentHighs[highsCount++] = High[i];
+         }
+      }
+   }
+
+   // High rejection if highs are getting lower
+   if (highsCount >= 2)
+      return recentHighs[1] < recentHighs[0];
+
+   return false;
 }
 
 //+------------------------------------------------------------------+

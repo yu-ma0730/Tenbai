@@ -15,6 +15,10 @@ input int EMA40_Period = 40;
 input int EMA80_Period = 80;
 input int BB_Period = 20;
 input double BB_Deviation = 2.0;
+input double EMA_Divergence_Threshold = 0.003;  // 0.3% threshold
+input bool CheckEMADivergence = true;        // Check EMA divergence
+input bool CheckHighRejection = true;        // Check high rejection
+input bool CheckShortTermWeakness = true;    // Check short-term weakness
 input bool EnableTrading = false;            // Enable automatic trading
 input bool UsePartialTakeProfit = true;      // Use trailing TP strategy
 input double PartialTPRatio = 1.5;           // TP ratio for partial exit
@@ -159,9 +163,36 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
    // Check if price breaks below BB Upper
    if (currentPrice < bbUpper && prevPrice >= bbUpper)
    {
-      SendAlert("SHORT ENTRY SIGNAL on " + _Symbol);
+      // Additional confirmation checks for short entry
+      double ema10 = GetEMA(ema10Handle, 0);
+      bool hasEMADivergence = CheckEMADivergence && CalculateEMADivergence(currentPrice, ema10) > EMA_Divergence_Threshold;
+      bool hasHighRejection = CheckHighRejection && IsHighRejection(50);
+      bool hasWeaknesSignal = CheckShortTermWeakness && HasShortTermWeakness();
 
-      if (EnableTrading && activeTrade.ticket == 0)
+      // Generate signal with confidence level
+      string signalReason = "SHORT: BB breakthrough";
+      int confirmationCount = 0;
+
+      if (hasEMADivergence)
+      {
+         signalReason += " + EMA Divergence";
+         confirmationCount++;
+      }
+      if (hasHighRejection)
+      {
+         signalReason += " + High Rejection";
+         confirmationCount++;
+      }
+      if (hasWeaknesSignal)
+      {
+         signalReason += " + Short-term Weakness";
+         confirmationCount++;
+      }
+
+      SendAlert(signalReason + " on " + _Symbol);
+
+      // Only execute if multiple confirmations OR high confidence signal
+      if (EnableTrading && activeTrade.ticket == 0 && confirmationCount >= 1)
       {
          ExecuteShortTrade(currentPrice, ema80);
       }
@@ -422,6 +453,68 @@ double GetBBValue(int handle, int line, int shift)
    ArraySetAsSeries(buffer, true);
    CopyBuffer(handle, line, shift, 1, buffer);
    return buffer[0];
+}
+
+//+------------------------------------------------------------------+
+//| Calculate EMA Divergence as Percentage                          |
+//+------------------------------------------------------------------+
+double CalculateEMADivergence(double price, double ema)
+{
+   if (ema == 0) return 0;
+   return MathAbs(price - ema) / ema;
+}
+
+//+------------------------------------------------------------------+
+//| Check for High Rejection Pattern                                |
+//+------------------------------------------------------------------+
+bool IsHighRejection(int lookbackPeriod)
+{
+   if (lookbackPeriod < 3) return false;
+
+   // Check if recent highs are declining
+   double high1 = High[0];
+   double high2 = High[lookbackPeriod / 2];
+   double high3 = High[lookbackPeriod];
+
+   // High rejection: highs getting progressively lower
+   return (high2 < high1) && (high3 < high2);
+}
+
+//+------------------------------------------------------------------+
+//| Check for Short-Term Weakness (Candle Pattern Analysis)        |
+//+------------------------------------------------------------------+
+bool HasShortTermWeakness()
+{
+   // Check if recent candles show weakness:
+   // - Inside bars increasing (candles contained within previous range)
+   // - Failed to make higher highs
+   // - Lower closes compared to opens
+
+   int insideBarsCount = 0;
+   int totalBars = 10;
+
+   for (int i = 1; i < totalBars; i++)
+   {
+      // Inside bar: High < PrevHigh AND Low > PrevLow
+      if (High[i] < High[i+1] && Low[i] > Low[i+1])
+         insideBarsCount++;
+   }
+
+   // Weakness signal: 40% or more are inside bars + declining highs
+   bool hasInsideBarPattern = insideBarsCount >= (totalBars * 0.4);
+   bool hasDeclineHighs = High[0] < High[5];
+
+   return hasInsideBarPattern && hasDeclineHighs;
+}
+
+//+------------------------------------------------------------------+
+//| Check for Outside Bar Pattern                                  |
+//+------------------------------------------------------------------+
+bool IsOutsideBar(int shift)
+{
+   // Outside bar: High > PrevHigh AND Low < PrevLow
+   if (shift < 1) return false;
+   return (High[shift] > High[shift+1]) && (Low[shift] < Low[shift+1]);
 }
 
 //+------------------------------------------------------------------+

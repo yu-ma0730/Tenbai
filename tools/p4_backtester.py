@@ -13,16 +13,25 @@ import ta  # Technical Analysis library
 
 
 class P4Backtester:
-    def __init__(self, symbol: str, timeframe: str = '15m'):
+    def __init__(self, symbol: str, timeframe: str = '15m',
+                 ema_divergence_threshold: float = 0.003,
+                 check_high_rejection: bool = True,
+                 check_short_weakness: bool = True):
         """
         Initialize P4 Backtester
 
         Args:
             symbol: Trading pair (e.g., 'EURUSD')
             timeframe: Candle timeframe (e.g., '15m', '1h')
+            ema_divergence_threshold: EMA divergence threshold (0.3% = 0.003)
+            check_high_rejection: Enable high rejection checking
+            check_short_weakness: Enable short-term weakness checking
         """
         self.symbol = symbol
         self.timeframe = timeframe
+        self.ema_divergence_threshold = ema_divergence_threshold
+        self.check_high_rejection = check_high_rejection
+        self.check_short_weakness = check_short_weakness
         self.df = None
         self.trades = []
         self.stats = {}
@@ -55,7 +64,58 @@ class P4Backtester:
         self.df['BB_Middle'] = bb.bollinger_mavg()
         self.df['BB_Lower'] = bb.bollinger_lband()
 
-        print("Indicators calculated")
+        # Calculate EMA Divergence
+        self.df['EMA_Divergence'] = abs(self.df['close'] - self.df['EMA10']) / self.df['EMA10']
+
+        # Calculate High Rejection (declining highs)
+        self.df['High_Rejection'] = self._calculate_high_rejection()
+
+        # Calculate Short-term Weakness (inside bars)
+        self.df['Short_Weakness'] = self._calculate_short_weakness()
+
+        print("Indicators calculated (including divergence and weakness signals)")
+
+    def _calculate_high_rejection(self) -> pd.Series:
+        """Calculate high rejection pattern (declining highs)"""
+        high_rejection = [False] * len(self.df)
+
+        for i in range(5, len(self.df)):
+            high_current = self.df['high'].iloc[i]
+            high_mid = self.df['high'].iloc[i-3]
+            high_prev = self.df['high'].iloc[i-5]
+
+            # High rejection: highs are getting progressively lower
+            if high_mid < high_prev and high_current < high_mid:
+                high_rejection[i] = True
+
+        return pd.Series(high_rejection, index=self.df.index)
+
+    def _calculate_short_weakness(self) -> pd.Series:
+        """Calculate short-term weakness (inside bars pattern)"""
+        weakness = [False] * len(self.df)
+
+        for i in range(10, len(self.df)):
+            inside_bar_count = 0
+
+            # Count inside bars in last 10 candles
+            for j in range(i, max(i-10, 0), -1):
+                curr_high = self.df['high'].iloc[j]
+                curr_low = self.df['low'].iloc[j]
+                prev_high = self.df['high'].iloc[j-1]
+                prev_low = self.df['low'].iloc[j-1]
+
+                # Inside bar: current high < previous high AND current low > previous low
+                if curr_high < prev_high and curr_low > prev_low:
+                    inside_bar_count += 1
+
+            # Weakness signal: 40% or more inside bars + declining highs
+            inside_bar_ratio = inside_bar_count / 10.0
+            has_declining_highs = self.df['high'].iloc[i] < self.df['high'].iloc[i-5]
+
+            if inside_bar_ratio >= 0.4 and has_declining_highs:
+                weakness[i] = True
+
+        return pd.Series(weakness, index=self.df.index)
 
     def check_perfect_order(self, row) -> int:
         """
@@ -153,14 +213,22 @@ class P4Backtester:
                     if resistance and current_row['close'] < resistance:
                         # Check if breaking out of BB upper band
                         if current_row['close'] < current_row['BB_Upper']:
-                            entry_price = current_row['close']
-                            entry_index = i
-                            trade_direction = -1
-                            in_trade = True
-                            support_level = resistance
-                            bb_breakout = False
-                            self.df.at[self.df.index[i], 'Signal'] = -1
-                            self.df.at[self.df.index[i], 'EntryPrice'] = entry_price
+                            # Check additional confirmation signals
+                            has_ema_divergence = current_row['EMA_Divergence'] > self.ema_divergence_threshold
+                            has_high_rejection = self.check_high_rejection and current_row['High_Rejection']
+                            has_weakness = self.check_short_weakness and current_row['Short_Weakness']
+
+                            # Accept SHORT if at least 1 confirmation exists (or no checks enabled)
+                            confirmations = sum([has_ema_divergence, has_high_rejection, has_weakness])
+                            if confirmations >= 1 or not (self.check_high_rejection or self.check_short_weakness):
+                                entry_price = current_row['close']
+                                entry_index = i
+                                trade_direction = -1
+                                in_trade = True
+                                support_level = resistance
+                                bb_breakout = False
+                                self.df.at[self.df.index[i], 'Signal'] = -1
+                                self.df.at[self.df.index[i], 'EntryPrice'] = entry_price
 
             # Manage active trade
             if in_trade:
