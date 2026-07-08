@@ -2,10 +2,13 @@ import hashlib
 import hmac
 import base64
 import json
+import logging
 import os
 import requests
 
 LINE_API = "https://api.line.me/v2/bot/message"
+
+logger = logging.getLogger(__name__)
 
 # ユーザーの入力状態を一時保存（本番ではRedis/DBに置き換える）
 _user_state: dict = {}
@@ -27,7 +30,9 @@ def reply(reply_token: str, messages: list):
         "Authorization": f"Bearer {token}",
     }
     payload = {"replyToken": reply_token, "messages": messages}
-    requests.post(f"{LINE_API}/reply", headers=headers, json=payload, timeout=10)
+    res = requests.post(f"{LINE_API}/reply", headers=headers, json=payload, timeout=10)
+    if not res.ok:
+        logger.error("LINE reply失敗 status=%s body=%s", res.status_code, res.text)
 
 
 def push(user_id: str, messages: list):
@@ -37,7 +42,9 @@ def push(user_id: str, messages: list):
         "Authorization": f"Bearer {token}",
     }
     payload = {"to": user_id, "messages": messages}
-    requests.post(f"{LINE_API}/push", headers=headers, json=payload, timeout=10)
+    res = requests.post(f"{LINE_API}/push", headers=headers, json=payload, timeout=10)
+    if not res.ok:
+        logger.error("LINE push失敗 status=%s body=%s", res.status_code, res.text)
 
 
 def get_user_state(user_id: str) -> dict:
