@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify
+import hmac
 import json
 import os
 import re
@@ -191,6 +192,58 @@ def analyze_product():
         "suppliers": suppliers,
         "price_comparison": price_comparison,
     })
+
+
+def _check_analytics_token() -> bool:
+    expected = os.environ.get("ANALYTICS_DASHBOARD_TOKEN", "")
+    given = request.args.get("token", "")
+    return bool(expected) and hmac.compare_digest(expected, given)
+
+
+@app.route("/api/collect", methods=["POST"])
+def collect():
+    from api.analytics import track_event, make_visitor_id
+
+    data = request.get_json(force=True, silent=True) or {}
+    site = str(data.get("site") or "unknown")[:100]
+    path = str(data.get("path") or "/")[:200]
+    referrer = str(data.get("referrer") or "")[:200]
+
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr or "").split(",")[0].strip()
+    user_agent = request.headers.get("User-Agent", "")
+    visitor_id = make_visitor_id(ip, user_agent)
+
+    track_event(site, path, referrer, visitor_id)
+
+    resp = jsonify({"status": "ok"})
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+@app.route("/api/stats", methods=["GET"])
+def stats():
+    if not _check_analytics_token():
+        return jsonify({"success": False, "error": "認証に失敗しました（tokenを確認してください）"}), 401
+
+    from api.analytics import get_stats, list_sites
+
+    site = request.args.get("site", "")
+    if not site:
+        return jsonify({"success": True, "sites": list_sites()})
+
+    day = request.args.get("date") or datetime.now().strftime("%Y-%m-%d")
+    result = get_stats(site, day)
+    if result is None:
+        return jsonify({"success": False, "error": "KVが未設定です（KV_REST_API_URL / KV_REST_API_TOKENを確認してください）"}), 500
+
+    return jsonify({"success": True, "site": site, "date": day, **result})
+
+
+@app.route("/dashboard")
+def dashboard():
+    if not _check_analytics_token():
+        return "unauthorized（?token=... が必要です）", 401
+    return render_template("dashboard.html")
 
 
 @app.route("/webhook", methods=["POST"])

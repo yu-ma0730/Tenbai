@@ -279,5 +279,12 @@
     <p>© 2026 占い師YUMA｜プライバシーポリシー</p>
   </footer>
 
+  <!-- Vercel公式のWeb Analytics / Speed Insights（Vercelダッシュボードで有効化すると計測が始まります） -->
+  <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/_vercel/speed-insights/script.js"></script>
+
+  <!-- 自作の汎用アクセス解析タグ -->
+  <script defer src="{{ url_for('static', filename='js/analytics.js') }}" data-site="tenbai-yuma" data-endpoint="/api/collect"></script>
+
 </body>
 </html>

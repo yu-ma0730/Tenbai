@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>アクセス解析ダッシュボード</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif;
+    background: #0f1117;
+    color: #eee;
+    margin: 0;
+    padding: 24px;
+  }
+  h1 { font-size: 20px; margin-bottom: 20px; }
+  .controls { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+  select, input {
+    background: #1a1d27; border: 1px solid #333; color: #eee;
+    padding: 8px 10px; border-radius: 6px; font-size: 14px;
+  }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 20px; }
+  .card { background: #1a1d27; border-radius: 10px; padding: 16px; }
+  .card .num { font-size: 30px; font-weight: 700; }
+  .card .label { font-size: 12px; color: #999; margin-top: 4px; }
+  .panel { background: #1a1d27; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .panel h2 { font-size: 13px; color: #999; margin: 0 0 12px; font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 13px; }
+  .row .name { width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar { flex: 1; background: #2a2d3a; border-radius: 4px; height: 14px; overflow: hidden; }
+  .bar-fill { background: #e94560; height: 100%; }
+  .row .count { width: 44px; text-align: right; color: #ccc; }
+  .empty, .notice { color: #888; font-size: 13px; }
+  .notice { background: #1a1d27; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+  <h1>アクセス解析ダッシュボード</h1>
+  <div class="controls">
+    <select id="siteSelect"><option value="">サイトを選択</option></select>
+    <input type="date" id="dateInput">
+  </div>
+
+  <div id="noticeArea"></div>
+
+  <div class="cards">
+    <div class="card"><div class="num" id="pvNum">-</div><div class="label">ページビュー</div></div>
+    <div class="card"><div class="num" id="uvNum">-</div><div class="label">推定訪問者数</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>人気ページ</h2>
+    <div id="pagesList" class="empty">データがありません</div>
+  </div>
+  <div class="panel">
+    <h2>参照元</h2>
+    <div id="referrersList" class="empty">データがありません</div>
+  </div>
+
+<script>
+var token = new URLSearchParams(location.search).get("token") || "";
+
+function api(path) {
+  var sep = path.indexOf("?") >= 0 ? "&" : "?";
+  return fetch(path + sep + "token=" + encodeURIComponent(token)).then(function (r) {
+    return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+  });
+}
+
+function renderList(el, items) {
+  el.innerHTML = "";
+  if (!items || !items.length) {
+    el.className = "empty";
+    el.textContent = "データがありません";
+    return;
+  }
+  el.className = "";
+  var max = Math.max.apply(null, items.map(function (i) { return i.count; }));
+  items.forEach(function (item) {
+    var row = document.createElement("div");
+    row.className = "row";
+    var name = document.createElement("div");
+    name.className = "name";
+    name.textContent = item.name;
+    var bar = document.createElement("div");
+    bar.className = "bar";
+    var fill = document.createElement("div");
+    fill.className = "bar-fill";
+    fill.style.width = (item.count / max * 100) + "%";
+    bar.appendChild(fill);
+    var count = document.createElement("div");
+    count.className = "count";
+    count.textContent = item.count;
+    row.appendChild(name);
+    row.appendChild(bar);
+    row.appendChild(count);
+    el.appendChild(row);
+  });
+}
+
+function loadStats() {
+  var site = document.getElementById("siteSelect").value;
+  var day = document.getElementById("dateInput").value;
+  if (!site) return;
+  api("/api/stats?site=" + encodeURIComponent(site) + "&date=" + day).then(function (res) {
+    if (!res.ok || !res.data.success) return;
+    document.getElementById("pvNum").textContent = res.data.pv;
+    document.getElementById("uvNum").textContent = res.data.uv;
+    renderList(document.getElementById("pagesList"), res.data.pages);
+    renderList(document.getElementById("referrersList"), res.data.referrers);
+  });
+}
+
+document.getElementById("dateInput").value = new Date().toISOString().slice(0, 10);
+document.getElementById("siteSelect").addEventListener("change", loadStats);
+document.getElementById("dateInput").addEventListener("change", loadStats);
+
+api("/api/stats").then(function (res) {
+  if (!res.ok) {
+    document.getElementById("noticeArea").innerHTML =
+      '<div class="notice">' + (res.data.error || "読み込みに失敗しました") + "</div>";
+    return;
+  }
+  var select = document.getElementById("siteSelect");
+  var sites = res.data.sites || [];
+  sites.forEach(function (site) {
+    var opt = document.createElement("option");
+    opt.value = site;
+    opt.textContent = site;
+    select.appendChild(opt);
+  });
+  if (sites.length) {
+    select.value = sites[0];
+    loadStats();
+  } else {
+    document.getElementById("noticeArea").innerHTML =
+      '<div class="notice">まだ計測データがありません。トラッキングタグを設置したページにアクセスすると表示されます。</div>';
+  }
+});
+</script>
+</body>
+</html>
