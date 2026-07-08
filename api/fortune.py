@@ -173,7 +173,7 @@ def build_flex_message(zodiac: str, blood_type: str, fortune: dict, cta_url: str
                         "text": fortune["message"],
                         "wrap": True,
                         "size": "sm",
-                        "color": "#444",
+                        "color": "#444444",
                         "margin": "md",
                     },
                     {
@@ -206,7 +206,7 @@ def build_flex_message(zodiac: str, blood_type: str, fortune: dict, cta_url: str
                                 "text": fortune["advice"],
                                 "wrap": True,
                                 "size": "sm",
-                                "color": "#333",
+                                "color": "#333333",
                                 "margin": "sm",
                             },
                         ],
@@ -224,7 +224,7 @@ def build_flex_message(zodiac: str, blood_type: str, fortune: dict, cta_url: str
                         "text": "あなたの運気をさらに上げる方法があります",
                         "wrap": True,
                         "size": "xs",
-                        "color": "#888",
+                        "color": "#888888",
                         "align": "center",
                     },
                     {
@@ -249,7 +249,7 @@ def _score_row(label: str, stars: str) -> dict:
         "type": "box",
         "layout": "horizontal",
         "contents": [
-            {"type": "text", "text": label, "size": "sm", "color": "#666", "flex": 2},
+            {"type": "text", "text": label, "size": "sm", "color": "#666666", "flex": 2},
             {"type": "text", "text": stars, "size": "sm", "color": "#e94560", "flex": 3},
         ],
     }
@@ -264,7 +264,7 @@ def _label_value(label: str, value: str) -> dict:
         "cornerRadius": "6px",
         "paddingAll": "8px",
         "contents": [
-            {"type": "text", "text": label, "size": "xxs", "color": "#888"},
+            {"type": "text", "text": label, "size": "xxs", "color": "#888888"},
             {"type": "text", "text": value, "size": "sm", "color": "#1a1a2e", "weight": "bold", "margin": "xs"},
         ],
     }
