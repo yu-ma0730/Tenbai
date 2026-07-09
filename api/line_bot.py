@@ -6,15 +6,18 @@ import logging
 import os
 import requests
 
+from api import kv
+
 LINE_API = "https://api.line.me/v2/bot/message"
 
 logger = logging.getLogger(__name__)
 
-# ユーザーの入力状態を一時保存（本番ではRedis/DBに置き換える）
-_user_state: dict = {}
+# KV未設定時（ローカル開発など）のフォールバック用一時保存
+_local_state: dict = {}
+_local_profile: dict = {}
 
-# ユーザーの占いプロフィール（星座・血液型）を永続保存（本番ではRedis/DBに置き換える）
-_user_profile: dict = {}
+# 会話状態はやりとり中だけ持てばよいのでTTLを設定（放置されたら自動で消える）
+STATE_TTL_SECONDS = 1800
 
 
 def verify_signature(body: bytes, signature: str) -> bool:
@@ -48,27 +51,45 @@ def push(user_id: str, messages: list):
 
 
 def get_user_state(user_id: str) -> dict:
-    return _user_state.get(user_id, {})
+    if not kv.is_configured():
+        return _local_state.get(user_id, {})
+    raw = kv.cmd("GET", f"linebot:state:{user_id}")
+    return json.loads(raw) if raw else {}
 
 
 def set_user_state(user_id: str, state: dict):
-    _user_state[user_id] = state
+    if not kv.is_configured():
+        _local_state[user_id] = state
+        return
+    kv.cmd("SET", f"linebot:state:{user_id}", json.dumps(state, ensure_ascii=False), "EX", STATE_TTL_SECONDS)
 
 
 def clear_user_state(user_id: str):
-    _user_state.pop(user_id, None)
+    if not kv.is_configured():
+        _local_state.pop(user_id, None)
+        return
+    kv.cmd("DEL", f"linebot:state:{user_id}")
 
 
 def get_user_profile(user_id: str) -> dict | None:
-    return _user_profile.get(user_id)
+    if not kv.is_configured():
+        return _local_profile.get(user_id)
+    raw = kv.cmd("GET", f"linebot:profile:{user_id}")
+    return json.loads(raw) if raw else None
 
 
 def save_user_profile(user_id: str, profile: dict):
-    _user_profile[user_id] = profile
+    if not kv.is_configured():
+        _local_profile[user_id] = profile
+        return
+    kv.cmd("SET", f"linebot:profile:{user_id}", json.dumps(profile, ensure_ascii=False))
 
 
 def clear_user_profile(user_id: str):
-    _user_profile.pop(user_id, None)
+    if not kv.is_configured():
+        _local_profile.pop(user_id, None)
+        return
+    kv.cmd("DEL", f"linebot:profile:{user_id}")
 
 
 def welcome_message() -> list:

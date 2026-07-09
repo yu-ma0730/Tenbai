@@ -1,33 +1,7 @@
 import hashlib
-import os
 from datetime import date
 
-import requests
-
-
-def _kv_configured() -> bool:
-    return bool(os.environ.get("KV_REST_API_URL")) and bool(os.environ.get("KV_REST_API_TOKEN"))
-
-
-def _pipeline(commands: list) -> list | None:
-    """Upstash RedisのREST APIにパイプラインでコマンドを送る"""
-    if not _kv_configured():
-        return None
-    url = os.environ["KV_REST_API_URL"].rstrip("/")
-    token = os.environ["KV_REST_API_TOKEN"]
-    res = requests.post(
-        f"{url}/pipeline",
-        headers={"Authorization": f"Bearer {token}"},
-        json=commands,
-        timeout=5,
-    )
-    res.raise_for_status()
-    return [item.get("result") for item in res.json()]
-
-
-def _cmd(*parts) -> object | None:
-    result = _pipeline([list(parts)])
-    return result[0] if result else None
+from api import kv
 
 
 def make_visitor_id(ip: str, user_agent: str) -> str:
@@ -38,7 +12,7 @@ def make_visitor_id(ip: str, user_agent: str) -> str:
 
 def track_event(site: str, path: str, referrer: str, visitor_id: str) -> bool:
     today = date.today().isoformat()
-    result = _pipeline([
+    result = kv.pipeline([
         ["INCR", f"pv:{site}:{today}"],
         ["PFADD", f"uv:{site}:{today}", visitor_id],
         ["ZINCRBY", f"pages:{site}:{today}", 1, path or "/"],
@@ -49,7 +23,7 @@ def track_event(site: str, path: str, referrer: str, visitor_id: str) -> bool:
 
 
 def get_stats(site: str, day: str) -> dict | None:
-    results = _pipeline([
+    results = kv.pipeline([
         ["GET", f"pv:{site}:{day}"],
         ["PFCOUNT", f"uv:{site}:{day}"],
         ["ZREVRANGE", f"pages:{site}:{day}", "0", "9", "WITHSCORES"],
@@ -67,7 +41,7 @@ def get_stats(site: str, day: str) -> dict | None:
 
 
 def list_sites() -> list:
-    return _cmd("SMEMBERS", "analytics:sites") or []
+    return kv.cmd("SMEMBERS", "analytics:sites") or []
 
 
 def _score_pairs(flat: list | None) -> list:
