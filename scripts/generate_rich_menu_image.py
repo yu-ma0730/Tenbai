@@ -7,6 +7,7 @@
 static/richmenu/rich_menu.png に 2500x843px の画像を書き出す。
 """
 import os
+import sys
 from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 2500, 843
@@ -17,8 +18,18 @@ COLUMNS = [
 ]
 
 FONT_CANDIDATES = [
+    # Linux
     "/usr/share/fonts/opentype/ipafont-gothic/ipag.ttf",
     "/usr/share/fonts/truetype/fonts-japanese-gothic.ttf",
+    # Windows
+    r"C:\Windows\Fonts\YuGothM.ttc",
+    r"C:\Windows\Fonts\yugothm.ttc",
+    r"C:\Windows\Fonts\meiryo.ttc",
+    r"C:\Windows\Fonts\msgothic.ttc",
+    # macOS
+    "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc",
+    "/System/Library/Fonts/Hiragino Sans GB.ttc",
+    "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
 ]
 
 
@@ -26,7 +37,12 @@ def _load_font(size: int) -> ImageFont.FreeTypeFont:
     for path in FONT_CANDIDATES:
         if os.path.exists(path):
             return ImageFont.truetype(path, size)
-    return ImageFont.load_default()
+    print(
+        "警告: 日本語フォントが見つからなかったため、文字が正しく表示されない可能性があります。\n"
+        "FONT_CANDIDATESにお使いのPCの日本語フォントのパスを追加してください。",
+        file=sys.stderr,
+    )
+    return ImageFont.load_default(size=size)
 
 
 def generate() -> str:
