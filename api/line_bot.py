@@ -172,9 +172,9 @@ FORTUNE_KEYWORDS = ("占い", "うらない")
 
 
 def _send_fortune(user_id: str, zodiac: str, blood_type: str, cta_url: str) -> None:
-    from api.fortune import generate_fortune, build_flex_message
+    from api.fortune import get_or_generate_fortune, build_flex_message
 
-    fortune = generate_fortune(zodiac, blood_type)
+    fortune = get_or_generate_fortune(zodiac, blood_type)
     flex = build_flex_message(zodiac, blood_type, fortune, cta_url)
     push(user_id, [flex, {
         "type": "text",

@@ -1,5 +1,10 @@
+import json
 import anthropic
 from datetime import date
+
+from api import kv
+
+FORTUNE_CACHE_TTL_SECONDS = 60 * 60 * 30  # 30時間（日付をまたぐタイミングのズレを考慮）
 
 ZODIAC_SIGNS = [
     (1, 20, "山羊座"), (2, 19, "水瓶座"), (3, 20, "魚座"),
@@ -83,13 +88,29 @@ JSONのみを返してください。"""
         messages=[{"role": "user", "content": prompt}],
     )
 
-    import json
     text = message.content[0].text.strip()
     if text.startswith("```"):
         text = text.split("```")[1]
         if text.startswith("json"):
             text = text[4:]
     return json.loads(text.strip())
+
+
+def get_or_generate_fortune(zodiac: str, blood_type: str) -> dict:
+    """同じ星座×血液型×当日なら、その日最初の結果をキャッシュして使い回す（1日1回だけランダム生成）"""
+    cache_key = f"fortune:{zodiac}:{blood_type}:{date.today().isoformat()}"
+
+    if kv.is_configured():
+        cached = kv.cmd("GET", cache_key)
+        if cached:
+            return json.loads(cached)
+
+    fortune = generate_fortune(zodiac, blood_type)
+
+    if kv.is_configured():
+        kv.cmd("SET", cache_key, json.dumps(fortune, ensure_ascii=False), "EX", FORTUNE_CACHE_TTL_SECONDS)
+
+    return fortune
 
 
 def score_to_stars(score: int) -> str:
