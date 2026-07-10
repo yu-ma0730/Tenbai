@@ -56,6 +56,11 @@ def generate_fortune(zodiac: str, blood_type: str) -> dict:
 - 血液型: {blood_type}型（{trait}）
 - 日付: {today_str}
 
+スコアについての重要な指示:
+- overall_score・love_score・work_score・money_scoreは、必ずそれぞれ異なる値にしてください（4つとも同じ、または3つ以上が同じ値になるのは禁止です）。
+- 「絶好調な分野」と「今日はいまいちな分野」がはっきり分かるように、1〜5の範囲でメリハリをつけてください（例: 5,2,4,3 のように散らす）。
+- overall_scoreは他の3項目の平均に引きずられすぎず、その日の総合的な勢いを表す独立した値にしてください。
+
 出力形式（JSON）:
 {{
   "overall": "総合運の一言コメント（20文字以内）",
@@ -74,6 +79,7 @@ JSONのみを返してください。"""
     message = client.messages.create(
         model="claude-haiku-4-5-20251001",
         max_tokens=512,
+        temperature=1.0,
         messages=[{"role": "user", "content": prompt}],
     )
 
