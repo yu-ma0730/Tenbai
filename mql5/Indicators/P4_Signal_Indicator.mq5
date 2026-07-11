@@ -67,6 +67,16 @@
 #property indicator_color11 clrPurple
 #property indicator_width11 2
 
+#property indicator_label12 "BB Overshoot Warning"
+#property indicator_type12  DRAW_ARROW
+#property indicator_color12 clrHotPink
+#property indicator_width12 2
+
+#property indicator_label13 "75% Entry Signal"
+#property indicator_type13  DRAW_ARROW
+#property indicator_color13 clrLime
+#property indicator_width13 3
+
 //--- Input parameters
 input int EMA10_Period = 10;
 input int EMA20_Period = 20;
@@ -81,6 +91,9 @@ input bool ShowHighRejectionWarning = true;
 input bool ShowEntryLines = true;           // Show entry lines (support/resistance)
 input bool ShowEMA80Level = true;           // Show EMA80 take profit level
 input bool UseBTCUSDMode = false;           // BTCUSD mode (RR 1:1.5, 1:2)
+input double BB_Overshoot_Percent = 0.5;   // % beyond BB to detect overshoot (50%)
+input bool ShowBBOvershotWarning = true;   // Show BB overshoot warning
+input bool Use75Percent_Entry = true;      // Use 75/25 entry composition
 
 //--- Buffers
 double ema10Buffer[];
@@ -94,6 +107,8 @@ double longSignalBuffer[];
 double shortSignalBuffer[];
 double divergenceBuffer[];
 double highRejectionBuffer[];
+double bbOvershotBuffer[];
+double entryCompositionBuffer[];
 
 //--- Handle for existing indicator
 int ema10Handle, ema20Handle, ema40Handle, ema80Handle;
@@ -116,6 +131,8 @@ int OnInit()
    SetIndexBuffer(8, shortSignalBuffer, INDICATOR_DATA);
    SetIndexBuffer(9, divergenceBuffer, INDICATOR_DATA);
    SetIndexBuffer(10, highRejectionBuffer, INDICATOR_DATA);
+   SetIndexBuffer(11, bbOvershotBuffer, INDICATOR_DATA);
+   SetIndexBuffer(12, entryCompositionBuffer, INDICATOR_DATA);
 
    // Create handles for iMA (EMA)
    ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA);
@@ -180,6 +197,8 @@ int OnCalculate(const int rates_total,
       shortSignalBuffer[i] = EMPTY_VALUE;
       divergenceBuffer[i] = EMPTY_VALUE;
       highRejectionBuffer[i] = EMPTY_VALUE;
+      bbOvershotBuffer[i] = EMPTY_VALUE;
+      entryCompositionBuffer[i] = EMPTY_VALUE;
 
       // Calculate EMA divergence (distance as percentage)
       double divergencePercent = 0;
@@ -194,6 +213,28 @@ int OnCalculate(const int rates_total,
          else
             divergenceBuffer[i] = high[i] + 20 * _Point; // Price below EMA
       }
+
+      // Check for BB Overshoot (price far beyond BB)
+      double bbRange = bbUpperBuffer[i] - bbLowerBuffer[i];
+      double overshootDistance = bbRange * BB_Overshoot_Percent;
+
+      bool isAboveOvershoot = close[i] > (bbUpperBuffer[i] + overshootDistance);
+      bool isBelowOvershoot = close[i] < (bbLowerBuffer[i] - overshootDistance);
+
+      if (ShowBBOvershotWarning && (isAboveOvershoot || isBelowOvershoot))
+      {
+         if (isAboveOvershoot)
+            bbOvershotBuffer[i] = high[i] + 30 * _Point;  // Pink arrow above
+         else
+            bbOvershotBuffer[i] = low[i] - 30 * _Point;   // Pink arrow below
+      }
+
+      // 75% Entry Composition: Determine if this should be a full entry or skip entry
+      // Every 4th signal can be skipped (25% skip rate = 75% entry rate)
+      static int signalCount = 0;
+      bool shouldUseFullEntry = (signalCount % 4) != 3;  // Skip every 4th (75% rule)
+      if (Use75Percent_Entry)
+         signalCount++;
 
       // Check Perfect Order for LONG
       if (ema10Buffer[i] > ema20Buffer[i] &&
@@ -223,10 +264,25 @@ int OnCalculate(const int rates_total,
 
             if (ShowSignalArrows && divergencePercent <= EMA_Divergence_Threshold)
             {
-               if (highRejection && ShowHighRejectionWarning)
+               // Determine signal type based on BB overshoot and entry composition
+               if (isAboveOvershoot)
+               {
+                  // Above BB overshoot: reduced RR warning or skip signal
+                  if (shouldUseFullEntry)
+                  {
+                     // Show as 75% entry (green signal)
+                     entryCompositionBuffer[i] = high[i] + 15 * _Point;
+                  }
+                  // else: skip this entry (no signal)
+               }
+               else if (highRejection && ShowHighRejectionWarning)
+               {
                   highRejectionBuffer[i] = high[i] + 20 * _Point;
-               else
+               }
+               else if (shouldUseFullEntry)
+               {
                   shortSignalBuffer[i] = high[i] + 10 * _Point;
+               }
             }
          }
       }

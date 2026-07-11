@@ -25,6 +25,10 @@ input double PartialTPRatio = 1.5;           // TP ratio for partial exit
 input bool UseBTCUSDMode = false;            // BTCUSD mode (RR 1:1.5, 1:2)
 input bool UseEMA80TP = true;                // Use EMA80 as TP target
 input bool UseNShapeExtension = true;        // Extend profit on N-shape pattern
+input double BB_Overshoot_Percent = 0.5;    // % beyond BB to detect overshoot (50%)
+input bool DetectBBOvershoot = true;        // Detect BB overshoot
+input bool Use75Percent_Entry = true;       // Use 75/25 entry composition (skip 25%)
+input double ReducedRRRatio = 0.75;         // Reduced RR when BB overshoot (0.75:1)
 input bool SendAlerts = true;                // Send alerts
 
 //--- Global variables
@@ -32,6 +36,7 @@ int ema10Handle, ema20Handle, ema40Handle, ema80Handle;
 int bbHandle;
 ulong lastAlertTime = 0;
 ulong lastTradeTime = 0;
+int entrySignalCount = 0;  // For 75/25 entry composition
 
 struct TradeInfo
 {
@@ -176,6 +181,40 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
       bool hasHighRejection = CheckHighRejection && IsHighRejection(50);
       bool hasWeaknesSignal = CheckShortTermWeakness && HasShortTermWeakness();
 
+      // Check for BB Overshoot (price far beyond BB)
+      double bbRange = bbUpper - bbLower;
+      double overshootDistance = bbRange * BB_Overshoot_Percent;
+      bool isAboveOvershoot = currentPrice > (bbUpper + overshootDistance);
+
+      // Check 75/25 entry composition
+      bool shouldUseFullEntry = true;
+      double appliedRRRatio = InitialRiskRewardRatio;
+
+      if (Use75Percent_Entry)
+      {
+         bool skipThisEntry = (entrySignalCount % 4) == 3;  // Skip every 4th
+         if (skipThisEntry)
+         {
+            shouldUseFullEntry = false;
+            SendAlert("SHORT signal SKIPPED (25% skip rule) on " + _Symbol);
+         }
+         entrySignalCount++;
+      }
+
+      if (isAboveOvershoot && DetectBBOvershoot)
+      {
+         // BB overshoot detected: use reduced RR or skip
+         appliedRRRatio = ReducedRRRatio;
+         SendAlert("SHORT: BB Overshoot detected! Using reduced RR " + DoubleToString(ReducedRRRatio) + " on " + _Symbol);
+      }
+
+      if (!shouldUseFullEntry)
+      {
+         // Skip this entry
+         prevPrice = currentPrice;
+         return;
+      }
+
       // Generate signal with confidence level
       string signalReason = "SHORT: BB breakthrough";
       int confirmationCount = 0;
@@ -201,7 +240,7 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
       // Only execute if multiple confirmations OR high confidence signal
       if (EnableTrading && activeTrade.ticket == 0 && confirmationCount >= 1)
       {
-         ExecuteShortTrade(currentPrice, ema80);
+         ExecuteShortTrade(currentPrice, ema80, appliedRRRatio);
       }
    }
 
@@ -211,7 +250,7 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
 //+------------------------------------------------------------------+
 //| Execute Long Trade                                               |
 //+------------------------------------------------------------------+
-void ExecuteLongTrade(double entryPrice, double ema80)
+void ExecuteLongTrade(double entryPrice, double ema80, double appliedRRRatio = 1.0)
 {
    MqlTradeRequest request = {0};
    MqlTradeResult result = {0};
@@ -227,18 +266,18 @@ void ExecuteLongTrade(double entryPrice, double ema80)
    // Calculate risk distance
    double risk = entryPrice - stopLoss;
 
-   // Calculate take profit levels based on mode
+   // Calculate take profit levels based on mode and applied RR ratio
    double tp1, tp2, tp;
    if (UseBTCUSDMode)
    {
-      tp1 = entryPrice + (risk * 1.5);  // RR 1:1.5
-      tp2 = entryPrice + (risk * 2.0);  // RR 1:2
+      tp1 = entryPrice + (risk * 1.5 * appliedRRRatio);  // RR 1:1.5 or reduced
+      tp2 = entryPrice + (risk * 2.0 * appliedRRRatio);  // RR 1:2 or reduced
       tp = tp1;  // Start with first level
    }
    else
    {
-      tp1 = entryPrice + risk;           // RR 1:1
-      tp2 = entryPrice + (risk * 1.5);  // RR 1:1.5
+      tp1 = entryPrice + (risk * appliedRRRatio);        // RR 1:1 or reduced
+      tp2 = entryPrice + (risk * 1.5 * appliedRRRatio);  // RR 1:1.5 or reduced
       tp = tp1;
    }
 
@@ -277,7 +316,7 @@ void ExecuteLongTrade(double entryPrice, double ema80)
 //+------------------------------------------------------------------+
 //| Execute Short Trade                                              |
 //+------------------------------------------------------------------+
-void ExecuteShortTrade(double entryPrice, double ema80)
+void ExecuteShortTrade(double entryPrice, double ema80, double appliedRRRatio = 1.0)
 {
    MqlTradeRequest request = {0};
    MqlTradeResult result = {0};
@@ -293,18 +332,18 @@ void ExecuteShortTrade(double entryPrice, double ema80)
    // Calculate risk distance
    double risk = stopLoss - entryPrice;
 
-   // Calculate take profit levels based on mode
+   // Calculate take profit levels based on mode and applied RR ratio
    double tp1, tp2, tp;
    if (UseBTCUSDMode)
    {
-      tp1 = entryPrice - (risk * 1.5);  // RR 1:1.5
-      tp2 = entryPrice - (risk * 2.0);  // RR 1:2
+      tp1 = entryPrice - (risk * 1.5 * appliedRRRatio);  // RR 1:1.5 or reduced
+      tp2 = entryPrice - (risk * 2.0 * appliedRRRatio);  // RR 1:2 or reduced
       tp = tp1;  // Start with first level
    }
    else
    {
-      tp1 = entryPrice - risk;           // RR 1:1
-      tp2 = entryPrice - (risk * 1.5);  // RR 1:1.5
+      tp1 = entryPrice - (risk * appliedRRRatio);        // RR 1:1 or reduced
+      tp2 = entryPrice - (risk * 1.5 * appliedRRRatio);  // RR 1:1.5 or reduced
       tp = tp1;
    }
 
