@@ -22,6 +22,9 @@ input bool CheckShortTermWeakness = true;    // Check short-term weakness
 input bool EnableTrading = false;            // Enable automatic trading
 input bool UsePartialTakeProfit = true;      // Use trailing TP strategy
 input double PartialTPRatio = 1.5;           // TP ratio for partial exit
+input bool UseBTCUSDMode = false;            // BTCUSD mode (RR 1:1.5, 1:2)
+input bool UseEMA80TP = true;                // Use EMA80 as TP target
+input bool UseNShapeExtension = true;        // Extend profit on N-shape pattern
 input bool SendAlerts = true;                // Send alerts
 
 //--- Global variables
@@ -37,12 +40,16 @@ struct TradeInfo
    double entryPrice;
    double stopLoss;
    double takeProfit;
+   double entryLine;           // Entry line level
    double riskAmount;
    bool isLong;
-   int tradeStage; // 0: initial, 1: BB broken, 2: partial TP hit
+   int tradeStage;             // 0: initial, 1: BB broken, 2: partial TP hit, 3: EMA80 target
+   double tp1;                 // First TP (RR 1:1 or BTCUSD 1:1.5)
+   double tp2;                 // Second TP (RR 1:2 or BTCUSD 1:2)
+   int emaWickCount;           // Count for N-shape detection
 };
 
-TradeInfo activeTrade = {0, 0, 0, 0, 0, 0, false, 0};
+TradeInfo activeTrade = {0, 0, 0, 0, 0, 0, 0, false, 0, 0, 0, 0};
 
 //+------------------------------------------------------------------+
 //| Expert initialization function                                   |
@@ -217,8 +224,23 @@ void ExecuteLongTrade(double entryPrice, double ema80)
    double lotSize = riskAmount / ((entryPrice - stopLoss) / _Point * SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE));
    lotSize = NormalizeDouble(lotSize, 2);
 
-   // Calculate take profit
-   double takeProfit = entryPrice + ((entryPrice - stopLoss) * InitialRiskRewardRatio);
+   // Calculate risk distance
+   double risk = entryPrice - stopLoss;
+
+   // Calculate take profit levels based on mode
+   double tp1, tp2, tp;
+   if (UseBTCUSDMode)
+   {
+      tp1 = entryPrice + (risk * 1.5);  // RR 1:1.5
+      tp2 = entryPrice + (risk * 2.0);  // RR 1:2
+      tp = tp1;  // Start with first level
+   }
+   else
+   {
+      tp1 = entryPrice + risk;           // RR 1:1
+      tp2 = entryPrice + (risk * 1.5);  // RR 1:1.5
+      tp = tp1;
+   }
 
    request.action = TRADE_ACTION_DEAL;
    request.symbol = _Symbol;
@@ -226,7 +248,7 @@ void ExecuteLongTrade(double entryPrice, double ema80)
    request.type = ORDER_TYPE_BUY;
    request.price = entryPrice;
    request.sl = stopLoss;
-   request.tp = takeProfit;
+   request.tp = tp;
    request.deviation = 10;
    request.magic = 123456;
    request.comment = "P4 Long Entry";
@@ -237,12 +259,14 @@ void ExecuteLongTrade(double entryPrice, double ema80)
       activeTrade.entryTime = TimeCurrent();
       activeTrade.entryPrice = entryPrice;
       activeTrade.stopLoss = stopLoss;
-      activeTrade.takeProfit = takeProfit;
+      activeTrade.takeProfit = tp;
+      activeTrade.tp1 = tp1;
+      activeTrade.tp2 = tp2;
       activeTrade.riskAmount = riskAmount;
       activeTrade.isLong = true;
       activeTrade.tradeStage = 0;
 
-      Print("LONG trade opened: ", result.order, " at ", entryPrice);
+      Print("LONG trade opened: ", result.order, " at ", entryPrice, " | TP1: ", tp1, " TP2: ", tp2);
    }
    else
    {
@@ -266,8 +290,23 @@ void ExecuteShortTrade(double entryPrice, double ema80)
    double lotSize = riskAmount / ((stopLoss - entryPrice) / _Point * SymbolInfoDouble(_Symbol, SYMBOL_TRADE_TICK_VALUE));
    lotSize = NormalizeDouble(lotSize, 2);
 
-   // Calculate take profit
-   double takeProfit = entryPrice - ((stopLoss - entryPrice) * InitialRiskRewardRatio);
+   // Calculate risk distance
+   double risk = stopLoss - entryPrice;
+
+   // Calculate take profit levels based on mode
+   double tp1, tp2, tp;
+   if (UseBTCUSDMode)
+   {
+      tp1 = entryPrice - (risk * 1.5);  // RR 1:1.5
+      tp2 = entryPrice - (risk * 2.0);  // RR 1:2
+      tp = tp1;  // Start with first level
+   }
+   else
+   {
+      tp1 = entryPrice - risk;           // RR 1:1
+      tp2 = entryPrice - (risk * 1.5);  // RR 1:1.5
+      tp = tp1;
+   }
 
    request.action = TRADE_ACTION_DEAL;
    request.symbol = _Symbol;
@@ -275,7 +314,7 @@ void ExecuteShortTrade(double entryPrice, double ema80)
    request.type = ORDER_TYPE_SELL;
    request.price = entryPrice;
    request.sl = stopLoss;
-   request.tp = takeProfit;
+   request.tp = tp;
    request.deviation = 10;
    request.magic = 123456;
    request.comment = "P4 Short Entry";
@@ -286,12 +325,14 @@ void ExecuteShortTrade(double entryPrice, double ema80)
       activeTrade.entryTime = TimeCurrent();
       activeTrade.entryPrice = entryPrice;
       activeTrade.stopLoss = stopLoss;
-      activeTrade.takeProfit = takeProfit;
+      activeTrade.takeProfit = tp;
+      activeTrade.tp1 = tp1;
+      activeTrade.tp2 = tp2;
       activeTrade.riskAmount = riskAmount;
       activeTrade.isLong = false;
       activeTrade.tradeStage = 0;
 
-      Print("SHORT trade opened: ", result.order, " at ", entryPrice);
+      Print("SHORT trade opened: ", result.order, " at ", entryPrice, " | TP1: ", tp1, " TP2: ", tp2);
    }
    else
    {
@@ -337,38 +378,81 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
    if (!PositionSelectByTicket(activeTrade.ticket))
       return;
 
+   double ema80 = GetEMA(ema80Handle, 0);
    request.action = TRADE_ACTION_SLTP;
    request.position = activeTrade.ticket;
    request.symbol = _Symbol;
 
    if (activeTrade.isLong)
    {
-      // Move SL to breakeven if price is above initial TP
-      if (currentPrice > activeTrade.takeProfit && activeTrade.tradeStage == 0)
+      // Stage 0: Initial TP reached - Move SL to breakeven
+      if (currentPrice > activeTrade.tp1 && activeTrade.tradeStage == 0)
       {
          request.sl = activeTrade.entryPrice;
          activeTrade.tradeStage = 1;
+         SendAlert("LONG: Initial TP reached. SL moved to breakeven.");
       }
-      // If BB is broken upward and RR > 1.5, move TP
+      // Stage 1: BB broken upward - Extend TP to TP2
       else if (currentPrice > bbUpper && activeTrade.tradeStage == 1)
       {
-         request.tp = activeTrade.entryPrice + ((activeTrade.entryPrice - activeTrade.stopLoss) * PartialTPRatio);
+         if (UseBTCUSDMode)
+            request.tp = activeTrade.tp2;  // Move to RR 1:2
+         else
+            request.tp = activeTrade.tp2;  // Move to RR 1:1.5
+
+         request.sl = activeTrade.tp1;  // Move SL to TP1 level
          activeTrade.tradeStage = 2;
+         SendAlert("LONG: BB breakout detected. TP extended to level 2.");
+      }
+      // Stage 2: EMA80 touch - Use EMA80 as TP or continue
+      else if (UseEMA80TP && currentPrice >= ema80 && activeTrade.tradeStage == 2)
+      {
+         // Option: Take profit at EMA80 or continue based on N-shape
+         if (!UseNShapeExtension || !HasNShapePattern())
+         {
+            CloseActiveTrade("EMA80 TP reached");
+         }
+         else
+         {
+            SendAlert("LONG: N-shape detected. Extending profit beyond EMA80.");
+            activeTrade.tradeStage = 3;
+         }
       }
    }
    else
    {
-      // Move SL to breakeven if price is below initial TP
-      if (currentPrice < activeTrade.takeProfit && activeTrade.tradeStage == 0)
+      // Stage 0: Initial TP reached - Move SL to breakeven
+      if (currentPrice < activeTrade.tp1 && activeTrade.tradeStage == 0)
       {
          request.sl = activeTrade.entryPrice;
          activeTrade.tradeStage = 1;
+         SendAlert("SHORT: Initial TP reached. SL moved to breakeven.");
       }
-      // If BB is broken downward and RR > 1.5, move TP
+      // Stage 1: BB broken downward - Extend TP to TP2
       else if (currentPrice < bbLower && activeTrade.tradeStage == 1)
       {
-         request.tp = activeTrade.entryPrice - ((activeTrade.stopLoss - activeTrade.entryPrice) * PartialTPRatio);
+         if (UseBTCUSDMode)
+            request.tp = activeTrade.tp2;  // Move to RR 1:2
+         else
+            request.tp = activeTrade.tp2;  // Move to RR 1:1.5
+
+         request.sl = activeTrade.tp1;  // Move SL to TP1 level
          activeTrade.tradeStage = 2;
+         SendAlert("SHORT: BB breakout detected. TP extended to level 2.");
+      }
+      // Stage 2: EMA80 touch - Use EMA80 as TP or continue
+      else if (UseEMA80TP && currentPrice <= ema80 && activeTrade.tradeStage == 2)
+      {
+         // Option: Take profit at EMA80 or continue based on N-shape
+         if (!UseNShapeExtension || !HasNShapePattern())
+         {
+            CloseActiveTrade("EMA80 TP reached");
+         }
+         else
+         {
+            SendAlert("SHORT: N-shape detected. Extending profit beyond EMA80.");
+            activeTrade.tradeStage = 3;
+         }
       }
    }
 
@@ -515,6 +599,53 @@ bool IsOutsideBar(int shift)
    // Outside bar: High > PrevHigh AND Low < PrevLow
    if (shift < 1) return false;
    return (High[shift] > High[shift+1]) && (Low[shift] < Low[shift+1]);
+}
+
+//+------------------------------------------------------------------+
+//| Check for N-Shape Pattern                                      |
+//+------------------------------------------------------------------+
+bool HasNShapePattern()
+{
+   // N-shape: Down-Up-Down-Up pattern
+   // Check if recent candles form N-shape (zigzag)
+   if (activeTrade.isLong)
+   {
+      // For Long: Check if we have multiple wicks creating zigzag
+      int wickCount = 0;
+      for (int i = 0; i < 10 && i < Bars(_Symbol, _Period); i++)
+      {
+         // Wick above close (resistance rejection)
+         if (High[i] - Close[i] > (High[i] - Low[i]) * 0.5)
+            wickCount++;
+      }
+      return wickCount >= 3;  // Multiple wicks = N-shape forming
+   }
+   else
+   {
+      // For Short: Check if we have multiple wicks creating zigzag
+      int wickCount = 0;
+      for (int i = 0; i < 10 && i < Bars(_Symbol, _Period); i++)
+      {
+         // Wick below close (support rejection)
+         if (Close[i] - Low[i] > (High[i] - Low[i]) * 0.5)
+            wickCount++;
+      }
+      return wickCount >= 3;  // Multiple wicks = N-shape forming
+   }
+}
+
+//+------------------------------------------------------------------+
+//| Draw Entry Line (Support/Resistance)                           |
+//+------------------------------------------------------------------+
+void DrawEntryLine(double level, string lineType)
+{
+   static int lineCount = 0;
+   string lineName = "P4_Entry_Line_" + IntegerToString(lineCount++);
+
+   ObjectCreate(0, lineName, OBJ_HLINE, 0, 0, level);
+   ObjectSetInteger(0, lineName, OBJPROP_COLOR, clrDodgerBlue);
+   ObjectSetInteger(0, lineName, OBJPROP_WIDTH, 2);
+   ObjectSetInteger(0, lineName, OBJPROP_STYLE, STYLE_DASH);
 }
 
 //+------------------------------------------------------------------+

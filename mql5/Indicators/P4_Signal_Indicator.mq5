@@ -78,6 +78,9 @@ input double EMA_Divergence_Threshold = 0.003;  // 0.3% threshold
 input bool ShowSignalArrows = true;
 input bool ShowDivergenceWarning = true;
 input bool ShowHighRejectionWarning = true;
+input bool ShowEntryLines = true;           // Show entry lines (support/resistance)
+input bool ShowEMA80Level = true;           // Show EMA80 take profit level
+input bool UseBTCUSDMode = false;           // BTCUSD mode (RR 1:1.5, 1:2)
 
 //--- Buffers
 double ema10Buffer[];
