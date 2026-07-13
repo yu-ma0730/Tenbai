@@ -1,0 +1,181 @@
+// FX Multi-Timeframe Analysis Tool for TradingView
+// マルチタイムフレーム分析インジケータ
+// 複数のタイムフレーム（4H, 1D, 1W）でトレンド分析
+
+//@version=5
+indicator("FX Multi-Timeframe Analyzer", shorttitle="MTF Analyzer", overlay=true)
+
+// ===== 入力パラメータ =====
+// MA設定
+fast_ma_length = input(9, title="Fast MA Length", group="Moving Averages")
+slow_ma_length = input(21, title="Slow MA Length", group="Moving Averages")
+ma_type = input.string("SMA", options=["SMA", "EMA", "WMA"], title="MA Type", group="Moving Averages")
+
+// RSI設定
+rsi_length = input(14, title="RSI Length", group="RSI")
+rsi_overbought = input(70, title="RSI Overbought", group="RSI")
+rsi_oversold = input(30, title="RSI Oversold", group="RSI")
+
+// MACD設定
+macd_fast = input(12, title="MACD Fast Length", group="MACD")
+macd_slow = input(26, title="MACD Slow Length", group="MACD")
+macd_signal = input(9, title="MACD Signal Length", group="MACD")
+
+// 表示設定
+show_4h_trend = input(true, title="Show 4H Trend", group="Display")
+show_1d_trend = input(true, title="Show 1D Trend", group="Display")
+show_1w_trend = input(true, title="Show 1W Trend", group="Display")
+show_alerts = input(true, title="Show Alerts", group="Display")
+
+// ===== 関数定義 =====
+
+// 移動平均計算
+f_ma(src, len, type_str) =>
+    if type_str == "EMA"
+        ta.ema(src, len)
+    else if type_str == "WMA"
+        ta.wma(src, len)
+    else
+        ta.sma(src, len)
+
+// トレンド判定（複数条件）
+f_get_trend(timeframe) =>
+    ma_fast = request.security(syminfo.tickerid, timeframe, f_ma(close, fast_ma_length, ma_type))
+    ma_slow = request.security(syminfo.tickerid, timeframe, f_ma(close, slow_ma_length, ma_type))
+    rsi_val = request.security(syminfo.tickerid, timeframe, ta.rsi(close, rsi_length))
+
+    high_val = request.security(syminfo.tickerid, timeframe, high)
+    low_val = request.security(syminfo.tickerid, timeframe, low)
+
+    // トレンド判定ロジック
+    uptrend = ma_fast > ma_slow and high_val > ma_slow
+    downtrend = ma_fast < ma_slow and low_val < ma_slow
+
+    trend = if uptrend
+        1  // アップトレンド
+    else if downtrend
+        -1  // ダウントレンド
+    else
+        0  // レンジ
+
+    [trend, ma_fast, ma_slow, rsi_val]
+
+// ===== マルチタイムフレーム分析 =====
+
+// 4時間足
+[trend_4h, ma_fast_4h, ma_slow_4h, rsi_4h] = f_get_trend("240")
+
+// 日足
+[trend_1d, ma_fast_1d, ma_slow_1d, rsi_1d] = f_get_trend("D")
+
+// 週足
+[trend_1w, ma_fast_1w, ma_slow_1w, rsi_1w] = f_get_trend("W")
+
+// ===== サポート＆レジスタンス =====
+// 直近のハイ・ロー（過去20期間）
+recent_high = ta.highest(high, 20)
+recent_low = ta.lowest(low, 20)
+
+// ===== MACD計算 =====
+[macd_line, signal_line, macd_hist] = ta.macd(close, macd_fast, macd_slow, macd_signal)
+
+// ===== 表示 =====
+
+// 4時間足トレンド表示
+if show_4h_trend
+    // 色分け
+    color_4h = trend_4h > 0 ? color.new(color.blue, 0) : trend_4h < 0 ? color.new(color.red, 0) : color.new(color.gray, 50)
+
+    // MA描画
+    plot(ma_fast_4h, title="4H Fast MA", color=color.new(color.blue, 30), linewidth=2, display=display.none)
+    plot(ma_slow_4h, title="4H Slow MA", color=color.new(color.blue, 30), linewidth=2)
+
+// 日足トレンド表示
+if show_1d_trend
+    color_1d = trend_1d > 0 ? color.new(color.green, 0) : trend_1d < 0 ? color.new(color.orange, 0) : color.new(color.gray, 50)
+    plot(ma_fast_1d, title="1D Fast MA", color=color.new(color.green, 50), linewidth=2)
+    plot(ma_slow_1d, title="1D Slow MA", color=color.new(color.green, 50), linewidth=2)
+
+// 週足トレンド表示
+if show_1w_trend
+    color_1w = trend_1w > 0 ? color.new(color.purple, 0) : trend_1w < 0 ? color.new(color.maroon, 0) : color.new(color.gray, 50)
+    plot(ma_fast_1w, title="1W Fast MA", color=color.new(color.purple, 70), linewidth=2)
+    plot(ma_slow_1w, title="1W Slow MA", color=color.new(color.purple, 70), linewidth=2)
+
+// サポート＆レジスタンスレベル
+hline(recent_high, title="Resistance", color=color.new(color.red, 50), linestyle=hline.style_dashed)
+hline(recent_low, title="Support", color=color.new(color.green, 50), linestyle=hline.style_dashed)
+
+// ===== アラート信号 =====
+// トレンド切り替え検知
+trend_4h_prev = request.security(syminfo.tickerid, "240", ta.valuewhen(trend_4h != 0, trend_4h, 1))
+trend_1d_prev = request.security(syminfo.tickerid, "D", ta.valuewhen(trend_1d != 0, trend_1d, 1))
+
+// クロスオーバーシグナル
+ma_crossover = ta.crossover(ma_fast_4h, ma_slow_4h)
+ma_crossunder = ta.crossunder(ma_fast_4h, ma_slow_4h)
+
+// RSIシグナル
+rsi_bullish = rsi_4h < rsi_oversold  // 買われすぎ
+rsi_bearish = rsi_4h > rsi_overbought  // 売られすぎ
+
+// マルチトレンド確認（全タイムフレーム一致）
+all_bullish = trend_4h > 0 and trend_1d > 0 and trend_1w > 0
+all_bearish = trend_4h < 0 and trend_1d < 0 and trend_1w < 0
+
+// ===== テーブル表示 =====
+// マルチタイムフレームの状態をテーブルで表示
+var table t = table.new(position=position.top_right, rows=5, columns=3,
+                        bgcolor=color.new(color.gray, 80),
+                        border_color=color.white,
+                        border_width=1)
+
+table.cell(t, 0, 0, text="Timeframe", text_halign=text.align_center, bgcolor=color.new(color.blue, 50))
+table.cell(t, 1, 0, text="Trend", text_halign=text.align_center, bgcolor=color.new(color.blue, 50))
+table.cell(t, 2, 0, text="RSI", text_halign=text.align_center, bgcolor=color.new(color.blue, 50))
+
+// 4H
+table.cell(t, 0, 1, text="4H", text_halign=text.align_center)
+trend_txt_4h = trend_4h > 0 ? "🔼 UP" : trend_4h < 0 ? "🔽 DOWN" : "→ RANGE"
+table.cell(t, 1, 1, text=trend_txt_4h, text_halign=text.align_center,
+           bgcolor=trend_4h > 0 ? color.new(color.green, 50) : trend_4h < 0 ? color.new(color.red, 50) : color.new(color.gray, 50))
+table.cell(t, 2, 1, text=str.tostring(math.round(rsi_4h, 1)), text_halign=text.align_center)
+
+// 1D
+table.cell(t, 0, 2, text="1D", text_halign=text.align_center)
+trend_txt_1d = trend_1d > 0 ? "🔼 UP" : trend_1d < 0 ? "🔽 DOWN" : "→ RANGE"
+table.cell(t, 1, 2, text=trend_txt_1d, text_halign=text.align_center,
+           bgcolor=trend_1d > 0 ? color.new(color.green, 50) : trend_1d < 0 ? color.new(color.red, 50) : color.new(color.gray, 50))
+table.cell(t, 2, 2, text=str.tostring(math.round(rsi_1d, 1)), text_halign=text.align_center)
+
+// 1W
+table.cell(t, 0, 3, text="1W", text_halign=text.align_center)
+trend_txt_1w = trend_1w > 0 ? "🔼 UP" : trend_1w < 0 ? "🔽 DOWN" : "→ RANGE"
+table.cell(t, 1, 3, text=trend_txt_1w, text_halign=text.align_center,
+           bgcolor=trend_1w > 0 ? color.new(color.green, 50) : trend_1w < 0 ? color.new(color.red, 50) : color.new(color.gray, 50))
+table.cell(t, 2, 3, text=str.tostring(math.round(rsi_1w, 1)), text_halign=text.align_center)
+
+// マルチ確認
+table.cell(t, 0, 4, text="Align", text_halign=text.align_center)
+align_txt = all_bullish ? "🔼 BULL" : all_bearish ? "🔽 BEAR" : "⚠ MIX"
+table.cell(t, 1, 4, text=align_txt, text_halign=text.align_center,
+           bgcolor=all_bullish ? color.new(color.green, 30) : all_bearish ? color.new(color.red, 30) : color.new(color.yellow, 30))
+table.cell(t, 2, 4, text="", text_halign=text.align_center)
+
+// ===== アラート =====
+if show_alerts
+    // ゴールデンクロス（買いシグナル）
+    if ma_crossover and trend_1d > 0
+        alert("🔼 BUY Signal: Golden Cross on 4H + Daily Uptrend", alert.freq_once_per_bar_close)
+
+    // デッドクロス（売りシグナル）
+    if ma_crossunder and trend_1d < 0
+        alert("🔽 SELL Signal: Death Cross on 4H + Daily Downtrend", alert.freq_once_per_bar_close)
+
+    // 全タイムフレーム強気
+    if all_bullish and not (all_bullish[1])
+        alert("⭐ STRONG BUY: All timeframes aligned Bullish!", alert.freq_once_per_bar_close)
+
+    // 全タイムフレーム弱気
+    if all_bearish and not (all_bearish[1])
+        alert("⭐ STRONG SELL: All timeframes aligned Bearish!", alert.freq_once_per_bar_close)

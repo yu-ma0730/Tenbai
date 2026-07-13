@@ -4,8 +4,12 @@ import os
 import re
 import urllib.parse
 from datetime import datetime
+from fx_api import fx_bp
 
 app = Flask(__name__)
+
+# FX APIブループリント登録
+app.register_blueprint(fx_bp)
 
 # 登録済み商品データ（本番ではDBに保存）
 registered_products = []
@@ -134,6 +138,11 @@ def get_price_comparison(keyword):
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/fx-analyzer")
+def fx_analyzer():
+    return render_template("fx_analyzer.html")
 
 
 @app.route("/api/trends", methods=["POST"])

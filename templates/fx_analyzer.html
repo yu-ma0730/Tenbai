@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FX マルチフレーム分析ツール</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            margin-right: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .results {
+            margin-top: 30px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .analysis-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .timeframe {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .trend {
+            font-size: 2em;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+
+        .trend.uptrend {
+            color: #28a745;
+        }
+
+        .trend.downtrend {
+            color: #dc3545;
+        }
+
+        .trend.range {
+            color: #ffc107;
+        }
+
+        .indicator {
+            margin: 10px 0;
+            font-size: 0.95em;
+            color: #666;
+        }
+
+        .indicator-label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .signal {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .signal.buy {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+
+        .signal.sell {
+            background: linear-gradient(135deg, #dc3545 0%, #e83e8c 100%);
+        }
+
+        .signal-type {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .signal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 600px) {
+            .signal-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .signal-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        .signal-item-label {
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .risk-reward {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 10px;
+            border-radius: 4px;
+            color: #856404;
+        }
+
+        .pattern {
+            background: #e7f3ff;
+            border-left: 4px solid #0066cc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            color: #004085;
+        }
+
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .alignment-badge {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .alignment-badge.bullish {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .alignment-badge.bearish {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .alignment-badge.mixed {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        .help-text {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 FX マルチフレーム分析ツール</h1>
+            <p>複数のタイムフレームから信頼性の高いトレードシグナルを生成</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title">分析設定</div>
+
+            <form id="analysisForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="symbol">通貨ペア</label>
+                        <select id="symbol">
+                            <option value="EUR/USD">EUR/USD</option>
+                            <option value="GBP/USD">GBP/USD</option>
+                            <option value="USD/JPY">USD/JPY</option>
+                            <option value="AUD/USD">AUD/USD</option>
+                            <option value="USD/CAD">USD/CAD</option>
+                        </select>
+                        <div class="help-text">分析対象の通貨ペアを選択</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="timeframes">タイムフレーム（複数選択可）</label>
+                        <select id="timeframes" multiple size="4">
+                            <option value="1H">1時間足</option>
+                            <option value="4H" selected>4時間足</option>
+                            <option value="D" selected>日足</option>
+                            <option value="W" selected>週足</option>
+                        </select>
+                        <div class="help-text">Ctrlキーで複数選択</div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fastMA">短期移動平均期間</label>
+                        <input type="number" id="fastMA" value="9" min="2" max="50">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="slowMA">長期移動平均期間</label>
+                        <input type="number" id="slowMA" value="21" min="2" max="200">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">分析を実行</button>
+            </form>
+        </div>
+
+        <div id="loading" class="card loading">
+            <div class="spinner"></div>
+            <p>分析中...</p>
+        </div>
+
+        <div id="results" class="results" style="display: none;">
+            <!-- トレンド分析結果 -->
+            <div class="card">
+                <div class="card-title">📈 トレンド分析</div>
+                <div id="analysisResults" class="analysis-grid"></div>
+            </div>
+
+            <!-- シグナル -->
+            <div class="card">
+                <div class="card-title">🎯 トレードシグナル</div>
+                <div id="signalResults"></div>
+            </div>
+
+            <!-- パターン -->
+            <div class="card">
+                <div class="card-title">🔍 ローソク足パターン</div>
+                <div id="patternResults"></div>
+            </div>
+
+            <!-- リスク・リワード計算機 -->
+            <div class="card">
+                <div class="card-title">💰 リスク・リワード計算機</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="entryPrice">エントリー価格</label>
+                        <input type="number" id="entryPrice" placeholder="1.0950" step="0.00001">
+                    </div>
+                    <div class="form-group">
+                        <label for="stopLoss">ストップロス</label>
+                        <input type="number" id="stopLoss" placeholder="1.0920" step="0.00001">
+                    </div>
+                    <div class="form-group">
+                        <label for="takeProfit">テイクプロフィット</label>
+                        <input type="number" id="takeProfit" placeholder="1.1050" step="0.00001">
+                    </div>
+                </div>
+                <button onclick="calculateRiskReward()" class="btn btn-secondary">計算</button>
+                <div id="rrResult" style="margin-top: 15px;"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>FX マルチフレーム分析ツール v1.0 | TradingView対応</p>
+            <p style="font-size: 0.9em; margin-top: 10px;">⚠️ 本ツールは分析参考です。トレード前にご自身で十分な検討をしてください。</p>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('analysisForm');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await performAnalysis();
+        });
+
+        async function performAnalysis() {
+            const symbol = document.getElementById('symbol').value;
+            const timeframesSelect = document.getElementById('timeframes');
+            const timeframes = Array.from(timeframesSelect.selectedOptions).map(opt => opt.value);
+            const fastMA = parseInt(document.getElementById('fastMA').value);
+            const slowMA = parseInt(document.getElementById('slowMA').value);
+
+            if (timeframes.length === 0) {
+                alert('少なくとも1つのタイムフレームを選択してください');
+                return;
+            }
+
+            loading.style.display = 'block';
+            results.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/fx/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        symbol,
+                        timeframes,
+                        fast_ma: fastMA,
+                        slow_ma: slowMA
+                    })
+                });
+
+                const data = await response.json();
+                loading.style.display = 'none';
+
+                if (data.success) {
+                    displayAnalysisResults(data);
+                    results.style.display = 'block';
+                } else {
+                    alert('エラー: ' + data.error);
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                alert('通信エラー: ' + error.message);
+            }
+        }
+
+        function displayAnalysisResults(data) {
+            // トレンド分析表示
+            const analysisHtml = Object.entries(data.analyses).map(([tf, analysis]) => {
+                const trendClass = analysis.trend_type === 'UPTREND' ? 'uptrend' :
+                                   analysis.trend_type === 'DOWNTREND' ? 'downtrend' : 'range';
+                const trendEmoji = analysis.trend_type === 'UPTREND' ? '🔼' :
+                                   analysis.trend_type === 'DOWNTREND' ? '🔽' : '→';
+
+                return `
+                    <div class="analysis-card">
+                        <div class="timeframe">${tf}</div>
+                        <div class="trend ${trendClass}">${trendEmoji} ${analysis.trend_type}</div>
+                        <div class="indicator">
+                            <div class="indicator-label">RSI: ${analysis.rsi.toFixed(1)}</div>
+                        </div>
+                        <div class="indicator">
+                            <div class="indicator-label">SL: ${analysis.signal_strength.toFixed(1)}%</div>
+                        </div>
+                        <div class="indicator">
+                            <div>S: ${analysis.support.toFixed(5)}</div>
+                            <div>R: ${analysis.resistance.toFixed(5)}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('analysisResults').innerHTML = analysisHtml;
+
+            // シグナル表示
+            if (data.signals.length > 0) {
+                const signalHtml = data.signals.map(signal => {
+                    const signalClass = signal.type === 'BUY' ? 'buy' : 'sell';
+                    const emoji = signal.type === 'BUY' ? '✅' : '❌';
+
+                    return `
+                        <div class="signal ${signalClass}">
+                            <div class="signal-type">${emoji} ${signal.type} シグナル</div>
+                            <div style="margin-bottom: 10px;">${signal.reason}</div>
+                            <div class="signal-details">
+                                <div class="signal-item">
+                                    <div class="signal-item-label">信頼度</div>
+                                    ${signal.confidence}%
+                                </div>
+                                <div class="signal-item">
+                                    <div class="signal-item-label">タイムフレーム</div>
+                                    ${signal.timeframe}
+                                </div>
+                                <div class="signal-item">
+                                    <div class="signal-item-label">エントリー</div>
+                                    ${signal.entry_price.toFixed(5)}
+                                </div>
+                                <div class="signal-item">
+                                    <div class="signal-item-label">R:R比</div>
+                                    1:${signal.risk_reward.toFixed(2)}
+                                </div>
+                            </div>
+                            <div class="risk-reward">
+                                <strong>SL:</strong> ${signal.stop_loss.toFixed(5)} |
+                                <strong>TP:</strong> ${signal.take_profit.toFixed(5)}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('signalResults').innerHTML = signalHtml;
+            } else {
+                document.getElementById('signalResults').innerHTML =
+                    '<div class="error">現在、明確なシグナルはありません</div>';
+            }
+
+            // パターン表示
+            if (data.patterns) {
+                const patternHtml = Object.entries(data.patterns).map(([tf, pattern]) => {
+                    let patternText = `<strong>${tf}足:</strong> `;
+
+                    if (pattern.engulfing.bullish) patternText += '🔼エングルフィング買 ';
+                    if (pattern.engulfing.bearish) patternText += '🔽エングルフィング売 ';
+                    if (pattern.hammer.hammer) patternText += '🔨ハンマー ';
+                    if (pattern.hammer.inverted_hammer) patternText += '⬆️逆ハンマー ';
+
+                    if (patternText === `<strong>${tf}足:</strong> `) {
+                        patternText += 'パターンなし';
+                    }
+
+                    return `<div class="pattern">${patternText}</div>`;
+                }).join('');
+
+                document.getElementById('patternResults').innerHTML = patternHtml;
+            }
+        }
+
+        async function calculateRiskReward() {
+            const entry = parseFloat(document.getElementById('entryPrice').value);
+            const sl = parseFloat(document.getElementById('stopLoss').value);
+            const tp = parseFloat(document.getElementById('takeProfit').value);
+
+            if (!entry || !sl || !tp) {
+                alert('全ての値を入力してください');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/fx/risk-reward', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        entry_price: entry,
+                        stop_loss: sl,
+                        take_profit: tp
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const rrResult = document.getElementById('rrResult');
+                    const ratio = data.ratio >= 2 ? 'excellent' : data.ratio >= 1 ? 'good' : 'poor';
+                    const ratioColor = ratio === 'excellent' ? '#28a745' : ratio === 'good' ? '#ffc107' : '#dc3545';
+
+                    rrResult.innerHTML = `
+                        <div class="risk-reward" style="border-left-color: ${ratioColor}; background: rgba(0,0,0,0.05);">
+                            <table>
+                                <tr>
+                                    <td><strong>リスク</strong></td>
+                                    <td>${data.risk.toFixed(5)} (${data.risk_percent.toFixed(2)}%)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>リワード</strong></td>
+                                    <td>${data.reward.toFixed(5)}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>R:R比率</strong></td>
+                                    <td style="font-size: 1.2em; color: ${ratioColor};">
+                                        <strong>1:${data.ratio.toFixed(2)}</strong>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                alert('計算エラー: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
