@@ -161,7 +161,7 @@ void DrawAnalysisInfo(double price,
                       double ma_1W_fast, double ma_1W_slow, double rsi_1W)
 {
     // 古いテキストを削除
-    ObjectsDeleteAll(0, OBJ_TEXT);
+    ObjectsDeleteAll(0, OBJ_TEXT, 0);
 
     // タイトル
     DrawText("TITLE", "FX Multi-Timeframe Analyzer", 20, 20, TextColor, TextSize + 2);
