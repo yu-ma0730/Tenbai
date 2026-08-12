@@ -29,7 +29,7 @@ input double BB_Overshoot_Percent = 0.5;    // % beyond BB to detect overshoot (
 input bool DetectBBOvershoot = true;        // Detect BB overshoot
 input bool Use75Percent_Entry = true;       // Use 75/25 entry composition (skip 25%)
 input double ReducedRRRatio = 0.75;         // Reduced RR when BB overshoot (0.75:1)
-input bool SendAlerts = true;                // Send alerts
+input int AlertLevel = 1;                    // Alert level: 0=none, 1=important only, 2=all
 
 //--- Global variables
 int ema10Handle, ema20Handle, ema40Handle, ema80Handle;
@@ -148,7 +148,7 @@ void CheckLongEntry(double currentPrice, double bbLower, double ema80)
    // Check if price breaks above BB Lower
    if (currentPrice > bbLower && prevPrice <= bbLower)
    {
-      SendAlert("LONG ENTRY SIGNAL on " + _Symbol);
+      SendAlert("LONG ENTRY SIGNAL on " + _Symbol, 1);
 
       if (EnableTrading && activeTrade.ticket == 0)
       {
@@ -196,7 +196,7 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
          if (skipThisEntry)
          {
             shouldUseFullEntry = false;
-            SendAlert("SHORT signal SKIPPED (25% skip rule) on " + _Symbol);
+            SendAlert("SHORT signal SKIPPED (25% skip rule) on " + _Symbol, 2);
          }
          entrySignalCount++;
       }
@@ -205,7 +205,7 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
       {
          // BB overshoot detected: use reduced RR or skip
          appliedRRRatio = ReducedRRRatio;
-         SendAlert("SHORT: BB Overshoot detected! Using reduced RR " + DoubleToString(ReducedRRRatio) + " on " + _Symbol);
+         SendAlert("SHORT: BB Overshoot detected! Using reduced RR " + DoubleToString(ReducedRRRatio) + " on " + _Symbol, 2);
       }
 
       if (!shouldUseFullEntry)
@@ -235,7 +235,7 @@ void CheckShortEntry(double currentPrice, double bbUpper, double ema80)
          confirmationCount++;
       }
 
-      SendAlert(signalReason + " on " + _Symbol);
+      SendAlert(signalReason + " on " + _Symbol, 1);
 
       // Only execute if multiple confirmations OR high confidence signal
       if (EnableTrading && activeTrade.ticket == 0 && confirmationCount >= 1)
@@ -429,7 +429,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
       {
          request.sl = activeTrade.entryPrice;
          activeTrade.tradeStage = 1;
-         SendAlert("LONG: Initial TP reached. SL moved to breakeven.");
+         SendAlert("LONG: Initial TP reached. SL moved to breakeven.", 1);
       }
       // Stage 1: BB broken upward - Extend TP to TP2
       else if (currentPrice > bbUpper && activeTrade.tradeStage == 1)
@@ -441,7 +441,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
 
          request.sl = activeTrade.tp1;  // Move SL to TP1 level
          activeTrade.tradeStage = 2;
-         SendAlert("LONG: BB breakout detected. TP extended to level 2.");
+         SendAlert("LONG: BB breakout detected. TP extended to level 2.", 1);
       }
       // Stage 2: EMA80 touch - Use EMA80 as TP or continue
       else if (UseEMA80TP && currentPrice >= ema80 && activeTrade.tradeStage == 2)
@@ -453,7 +453,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
          }
          else
          {
-            SendAlert("LONG: N-shape detected. Extending profit beyond EMA80.");
+            SendAlert("LONG: N-shape detected. Extending profit beyond EMA80.", 2);
             activeTrade.tradeStage = 3;
          }
       }
@@ -465,7 +465,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
       {
          request.sl = activeTrade.entryPrice;
          activeTrade.tradeStage = 1;
-         SendAlert("SHORT: Initial TP reached. SL moved to breakeven.");
+         SendAlert("SHORT: Initial TP reached. SL moved to breakeven.", 1);
       }
       // Stage 1: BB broken downward - Extend TP to TP2
       else if (currentPrice < bbLower && activeTrade.tradeStage == 1)
@@ -477,7 +477,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
 
          request.sl = activeTrade.tp1;  // Move SL to TP1 level
          activeTrade.tradeStage = 2;
-         SendAlert("SHORT: BB breakout detected. TP extended to level 2.");
+         SendAlert("SHORT: BB breakout detected. TP extended to level 2.", 1);
       }
       // Stage 2: EMA80 touch - Use EMA80 as TP or continue
       else if (UseEMA80TP && currentPrice <= ema80 && activeTrade.tradeStage == 2)
@@ -489,7 +489,7 @@ void UpdateTrailingStop(double currentPrice, double bbUpper, double bbLower)
          }
          else
          {
-            SendAlert("SHORT: N-shape detected. Extending profit beyond EMA80.");
+            SendAlert("SHORT: N-shape detected. Extending profit beyond EMA80.", 2);
             activeTrade.tradeStage = 3;
          }
       }
@@ -542,11 +542,12 @@ void CloseActiveTrade(string reason = "")
 }
 
 //+------------------------------------------------------------------+
-//| Send Alert                                                       |
+//| Send Alert with Level Control                                    |
 //+------------------------------------------------------------------+
-void SendAlert(string message)
+void SendAlert(string message, int level = 1)
 {
-   if (!SendAlerts) return;
+   if (AlertLevel == 0) return;  // No alerts
+   if (AlertLevel == 1 && level > 1) return;  // Skip informational messages at level 1
 
    // Throttle alerts to avoid spam
    if (TimeCurrent() - lastAlertTime < 300) return;

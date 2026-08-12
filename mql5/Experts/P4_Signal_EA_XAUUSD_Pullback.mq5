@@ -17,7 +17,7 @@ input double EMA_Divergence_Threshold = 0.15; // 0.15% for Gold
 input bool EnableTrading = false;            // Enable automatic trading
 input bool DetectPullbackSignals = true;    // Detect pullback entry signals
 input bool SkipNewsTime = true;             // Skip news time
-input bool SendAlerts = true;                // Send alerts
+input int AlertLevel = 1;                    // Alert level: 0=none, 1=important only, 2=all
 
 //--- Pullback resistance points
 enum ResistanceType
@@ -82,7 +82,7 @@ void OnTick()
    // Check if we should skip due to news
    if (SkipNewsTime && IsNewsTime())
    {
-      SendAlert("Skipping trade - Economic news time");
+      SendAlert("Skipping trade - Economic news time", 2);
       return;
    }
 
@@ -90,7 +90,7 @@ void OnTick()
    int po4H = Check4HPerfectOrder();
    if (po4H != -1)  // Only SHORT when 4H PO is for SHORT
    {
-      SendAlert("4H PO not in SHORT position - Skipping");
+      SendAlert("4H PO not in SHORT position - Skipping", 2);
       return;
    }
 
@@ -127,7 +127,7 @@ void OnTick()
    // Check for EMA80 breakout (trend reversal warning)
    if (currentPrice > ema80_1H + 100 * _Point)
    {
-      SendAlert("WARNING: Price broke above 1H EMA80 - Potential trend reversal!");
+      SendAlert("WARNING: Price broke above 1H EMA80 - Potential trend reversal!", 1);
       if (activeTrade.ticket > 0)
       {
          ClosePullbackTrade("EMA80 breakout - Trend reversal warning");
@@ -163,7 +163,7 @@ void CheckPullbackShortEntry(int resistanceType, double resistanceLevel,
    if (divergence > EMA_Divergence_Threshold)
    {
       SendAlert("EMA divergence too high - Skipping entry at " +
-                DoubleToString(resistanceLevel, 2));
+                DoubleToString(resistanceLevel, 2), 2);
       return;
    }
 
@@ -178,7 +178,7 @@ void CheckPullbackShortEntry(int resistanceType, double resistanceLevel,
                          hasPinbarTop ? "Pinbar Top" : "Inverse Pincer";
 
       SendAlert("SHORT Entry Signal: " + signalType + " at " +
-                DoubleToString(resistanceLevel, 2));
+                DoubleToString(resistanceLevel, 2), 1);
 
       if (EnableTrading)
       {
@@ -350,11 +350,12 @@ bool IsNewsTime()
 }
 
 //+------------------------------------------------------------------+
-//| Send Alert                                                        |
+//| Send Alert with Level Control                                    |
 //+------------------------------------------------------------------+
-void SendAlert(string message)
+void SendAlert(string message, int level = 1)
 {
-   if (!SendAlerts) return;
+   if (AlertLevel == 0) return;  // No alerts
+   if (AlertLevel == 1 && level > 1) return;  // Skip informational messages at level 1
 
    // Throttle alerts
    if (TimeCurrent() - lastAlertTime < 300) return;
