@@ -135,13 +135,13 @@ int OnInit()
    SetIndexBuffer(12, entryCompositionBuffer, INDICATOR_DATA);
 
    // Create handles for iMA (EMA)
-   ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA, PRICE_CLOSE);
-   ema20Handle = iMA(_Symbol, _Period, EMA20_Period, 0, MODE_EMA, PRICE_CLOSE);
-   ema40Handle = iMA(_Symbol, _Period, EMA40_Period, 0, MODE_EMA, PRICE_CLOSE);
-   ema80Handle = iMA(_Symbol, _Period, EMA80_Period, 0, MODE_EMA, PRICE_CLOSE);
+   ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA);
+   ema20Handle = iMA(_Symbol, _Period, EMA20_Period, 0, MODE_EMA);
+   ema40Handle = iMA(_Symbol, _Period, EMA40_Period, 0, MODE_EMA);
+   ema80Handle = iMA(_Symbol, _Period, EMA80_Period, 0, MODE_EMA);
 
    // Create handle for Bollinger Bands
-   bbHandle = iBands(_Symbol, _Period, BB_Period, 0, BB_Deviation, PRICE_CLOSE);
+   bbHandle = iBands(_Symbol, _Period, BB_Period, 0, BB_Deviation);
 
    if (ema10Handle == INVALID_HANDLE || ema20Handle == INVALID_HANDLE ||
        ema40Handle == INVALID_HANDLE || ema80Handle == INVALID_HANDLE ||
