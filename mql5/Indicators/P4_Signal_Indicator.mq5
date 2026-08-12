@@ -135,13 +135,13 @@ int OnInit()
    SetIndexBuffer(12, entryCompositionBuffer, INDICATOR_DATA);
 
    // Create handles for iMA (EMA)
-   ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA);
-   ema20Handle = iMA(_Symbol, _Period, EMA20_Period, 0, MODE_EMA);
-   ema40Handle = iMA(_Symbol, _Period, EMA40_Period, 0, MODE_EMA);
-   ema80Handle = iMA(_Symbol, _Period, EMA80_Period, 0, MODE_EMA);
+   ema10Handle = iMA(_Symbol, _Period, EMA10_Period, 0, MODE_EMA, PRICE_CLOSE);
+   ema20Handle = iMA(_Symbol, _Period, EMA20_Period, 0, MODE_EMA, PRICE_CLOSE);
+   ema40Handle = iMA(_Symbol, _Period, EMA40_Period, 0, MODE_EMA, PRICE_CLOSE);
+   ema80Handle = iMA(_Symbol, _Period, EMA80_Period, 0, MODE_EMA, PRICE_CLOSE);
 
    // Create handle for Bollinger Bands
-   bbHandle = iBands(_Symbol, _Period, BB_Period, 0, BB_Deviation);
+   bbHandle = iBands(_Symbol, _Period, BB_Period, 0, BB_Deviation, PRICE_CLOSE);
 
    if (ema10Handle == INVALID_HANDLE || ema20Handle == INVALID_HANDLE ||
        ema40Handle == INVALID_HANDLE || ema80Handle == INVALID_HANDLE ||
@@ -260,7 +260,7 @@ int OnCalculate(const int rates_total,
              close[i-1] >= bbUpperBuffer[i-1])
          {
             // Check for high rejection signal (failing to update higher highs)
-            bool highRejection = CheckHighRejection(i, 50);  // Look back 50 bars
+            bool highRejection = CheckHighRejection(i, 50, high);  // Look back 50 bars
 
             if (ShowSignalArrows && divergencePercent <= EMA_Divergence_Threshold)
             {
@@ -294,7 +294,7 @@ int OnCalculate(const int rates_total,
 //+------------------------------------------------------------------+
 //| Check High Rejection (Higher High Update Failure)                |
 //+------------------------------------------------------------------+
-bool CheckHighRejection(const int currentBar, const int lookbackPeriod)
+bool CheckHighRejection(const int currentBar, const int lookbackPeriod, const double &high[])
 {
    // Check if recent highs are declining (high rejection pattern)
    if (currentBar < lookbackPeriod) return false;
@@ -308,10 +308,10 @@ bool CheckHighRejection(const int currentBar, const int lookbackPeriod)
       if (i > 0)
       {
          // Simple high rejection: recent bar's high < previous significant high
-         if (High[i] > High[i-1] && High[i] > High[i-5])
+         if (high[i] > high[i-1] && high[i] > high[i-5])
          {
-            if (highsCount == 0 || High[i] < recentHighs[highsCount-1])
-               recentHighs[highsCount++] = High[i];
+            if (highsCount == 0 || high[i] < recentHighs[highsCount-1])
+               recentHighs[highsCount++] = high[i];
          }
       }
    }
