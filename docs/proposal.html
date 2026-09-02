@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提案文作成ツール</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Hiragino Kaku Gothic Pro', Meiryo, sans-serif; background: #f5f7fa; color: #333; min-height: 100vh; }
+  .container { max-width: 760px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 1.5rem; color: #1a56db; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
+  .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size: 1rem; color: #374151; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; margin-top: 12px; }
+  label:first-of-type { margin-top: 0; }
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 0.9rem; font-family: inherit; transition: border .2s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #1a56db; }
+  textarea { resize: vertical; }
+  .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; transition: background .2s; }
+  .btn-primary { background: #1a56db; color: #fff; }
+  .btn-primary:hover { background: #1648c0; }
+  .btn-secondary { background: #f3f4f6; color: #374151; }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: #dbeafe; color: #1a56db; }
+  .status { font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; margin-top: 8px; }
+  .status.ok { background: #dcfce7; color: #166534; }
+  .status.err { background: #fee2e2; color: #991b1b; }
+  .status.info { background: #fef9c3; color: #92400e; }
+  .proposal-box { background: #f8faff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 16px; white-space: pre-wrap; font-size: 0.88rem; line-height: 1.7; margin-top: 12px; }
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { padding: 6px 12px; border-radius: 20px; border: 1px solid #d1d5db; background: #f9fafb; cursor: pointer; font-size: 0.82rem; transition: all .15s; }
+  .chip.active { background: #1a56db; color: #fff; border-color: #1a56db; }
+  .proposal-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-top: 10px; position: relative; }
+  .proposal-item.selected { border-color: #1a56db; background: #f0f5ff; }
+  .proposal-num { font-size: 0.75rem; color: #6b7280; margin-bottom: 6px; }
+  .copy-btn { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; padding: 4px 10px; }
+  #step1, #step2, #step3 { display: none; }
+  .loader { display: inline-block; width: 16px; height: 16px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .img-preview { max-width: 100%; max-height: 200px; border-radius: 6px; margin-top: 8px; display: none; }
+  .section-label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+  .key-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .key-row input { flex: 1; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📝 提案文作成ツール</h1>
+  <p class="subtitle">CrowdWorks向け提案文を AI で自動生成します。APIキーは自分のブラウザにのみ保存されます。</p>
+
+  <!-- Step 1: API Key -->
+  <div class="card" id="step1">
+    <h2>🔑 <span>Step 1 — API キー設定</span></h2>
+    <label>Anthropic API キー</label>
+    <div class="key-row">
+      <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+      <button class="btn btn-primary" onclick="step1Next()">接続テスト</button>
+      <button class="btn btn-danger" id="clearBtn" onclick="clearKey()" style="display:none">削除</button>
+    </div>
+    <div id="keyStatus"></div>
+    <p style="font-size:0.78rem;color:#9ca3af;margin-top:8px;">APIキーは <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> で取得できます。他人には共有しないでください。</p>
+  </div>
+
+  <!-- Step 2: Job Info -->
+  <div class="card" id="step2">
+    <h2>📋 <span>Step 2 — 案件情報</span></h2>
+    <label>案件タイトル</label>
+    <input type="text" id="jobTitle" placeholder="例: ECサイトのLP制作">
+
+    <label>案件内容 <span class="badge">テキストまたは画像</span></label>
+    <textarea id="jobContent" rows="6" placeholder="案件の詳細をここに貼り付けるか、下の画像アップロードから読み取ります。"></textarea>
+
+    <label>案件画像（スクリーンショット）</label>
+    <input type="file" id="imgInput" accept="image/*" onchange="onImg(event)">
+    <img id="imgPreview" class="img-preview">
+    <button class="btn btn-secondary" id="extractBtn" onclick="extractImg()" style="display:none;margin-top:8px;">📷 画像から案件内容を読み取る</button>
+    <div id="extractStatus"></div>
+
+    <label>報酬・予算</label>
+    <input type="text" id="jobReward" placeholder="例: 30,000円">
+
+    <label>自分の稼働条件・補足（提案文に盛り込む情報）</label>
+    <textarea id="myCondition" rows="3" placeholder="例: 週10時間程度での対応が可能です。複数案件を並行対応しているため、ご連絡はチャットで随時対応いたします。"></textarea>
+    <p style="font-size:0.75rem;color:#9ca3af;margin-top:4px;">入力内容は自動保存されます。</p>
+
+    <div class="row">
+      <button class="btn btn-primary" onclick="generate()">✨ 提案文を生成</button>
+      <button class="btn btn-secondary" onclick="goStep(1)">← 戻る</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Results -->
+  <div class="card" id="step3">
+    <h2>💡 <span>Step 3 — 生成結果</span></h2>
+    <div id="genStatus"></div>
+    <div id="proposals"></div>
+
+    <div id="refinePanel" style="display:none;margin-top:20px;">
+      <div class="section-label">選択した提案文をブラッシュアップ</div>
+      <div class="chip-group" id="refineChips">
+        <div class="chip" data-v="簡潔にする">簡潔にする</div>
+        <div class="chip" data-v="丁寧にする">丁寧にする</div>
+        <div class="chip" data-v="書き出しを変える">書き出しを変える</div>
+        <div class="chip" data-v="説得力を上げる">説得力を上げる</div>
+        <div class="chip" data-v="メリットを強調">メリットを強調</div>
+        <div class="chip" data-v="カジュアルにする">カジュアルにする</div>
+      </div>
+      <label style="margin-top:10px;">カスタム指示（任意）</label>
+      <input type="text" id="customRefine" placeholder="例: 実績を具体的に入れる">
+      <div class="row">
+        <button class="btn btn-primary" onclick="doRefine()">🔄 ブラッシュアップ</button>
+      </div>
+      <div id="refineResult" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="row" style="margin-top:16px;">
+      <button class="btn btn-secondary" onclick="goStep(2)">← 案件情報に戻る</button>
+      <button class="btn btn-secondary" id="cancelBtn" onclick="cancelGen()" style="display:none;">⏹ 中断</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_STORAGE = 'anth_key';
+const COND_STORAGE = 'proposal_condition';
+
+const S = {
+  key: '', imgB64: '', imgType: 'image/jpeg', imgCanvas: null,
+  title: '', content: '', reward: '', condition: '',
+  proposals: [], selected: new Set(),
+  cacheKey: '', ctl: null,
+};
+
+function goStep(n) {
+  document.getElementById('step1').style.display = n >= 1 ? 'block' : 'none';
+  document.getElementById('step2').style.display = n >= 2 ? 'block' : 'none';
+  document.getElementById('step3').style.display = n >= 3 ? 'block' : 'none';
+}
+
+function setStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+// ── API Key ──────────────────────────────────────────────
+window.onload = () => {
+  const saved = localStorage.getItem(KEY_STORAGE);
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('clearBtn').style.display = 'inline-block';
+    setStatus('keyStatus', '✅ 保存済みのAPIキーがあります', 'ok');
+  }
+  const cond = localStorage.getItem(COND_STORAGE);
+  if (cond) document.getElementById('myCondition').value = cond;
+  goStep(1);
+
+  document.getElementById('myCondition').addEventListener('input', debounce(() => {
+    localStorage.setItem(COND_STORAGE, document.getElementById('myCondition').value);
+  }, 800));
+
+  document.querySelectorAll('.chip').forEach(c => {
+    c.addEventListener('click', () => c.classList.toggle('active'));
+  });
+};
+
+async function step1Next() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key.startsWith('sk-ant-')) {
+    setStatus('keyStatus', '❌ APIキーは sk-ant- で始まる形式です', 'err'); return;
+  }
+  setStatus('keyStatus', '接続確認中…', 'info');
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: headers(key),
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 10, messages: [{ role: 'user', content: 'hi' }] }),
+    });
+    if (!r.ok) throw new Error((await r.json()).error?.message || r.status);
+    S.key = key;
+    localStorage.setItem(KEY_STORAGE, key);
+    document.getElementById('clearBtn').style.display = 'inline-block';
+    setStatus('keyStatus', '✅ 接続成功！APIキーを保存しました', 'ok');
+    goStep(2);
+  } catch (e) {
+    setStatus('keyStatus', '❌ ' + e.message, 'err');
+  }
+}
+
+function clearKey() {
+  localStorage.removeItem(KEY_STORAGE);
+  document.getElementById('apiKey').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  S.key = '';
+  setStatus('keyStatus', 'APIキーを削除しました', 'info');
+  goStep(1);
+}
+
+function headers(key) {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': key,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+  };
+}
+
+// ── Image Handling ────────────────────────────────────────
+function onImg(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_W = 1000;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      S.imgCanvas = cv;
+      S.imgB64 = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
+      S.imgType = 'image/jpeg';
+      const prev = document.getElementById('imgPreview');
+      prev.src = cv.toDataURL('image/jpeg', 0.85);
+      prev.style.display = 'block';
+      document.getElementById('extractBtn').style.display = 'inline-block';
+      setStatus('extractStatus', '画像を読み込みました。「画像から案件内容を読み取る」を押してください。', 'info');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function splitCanvas(canvas, parts) {
+  const sliceH = Math.ceil(canvas.height / parts);
+  const result = [];
+  for (let i = 0; i < parts; i++) {
+    const y = i * sliceH;
+    const h = Math.min(sliceH, canvas.height - y);
+    const cv = document.createElement('canvas');
+    cv.width = canvas.width; cv.height = h;
+    cv.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+    result.push(cv.toDataURL('image/jpeg', 0.85).split(',')[1]);
+  }
+  return result;
+}
+
+async function extractImg() {
+  if (!S.imgCanvas) return;
+  setStatus('extractStatus', '⏳ 画像を解析中…', 'info');
+  const canvas = S.imgCanvas;
+  const parts = canvas.height > canvas.width * 1.5 ? 3 : 1;
+  const slices = parts > 1 ? splitCanvas(canvas, parts) : [S.imgB64];
+
+  const imgContent = slices.map(b64 => ({
+    type: 'image', source: { type: 'base64', media_type: 'image/jpeg', data: b64 }
+  }));
+  imgContent.push({ type: 'text', text: '上記の画像は案件情報のスクリーンショットです（複数枚は上から順）。案件タイトル、業務内容、報酬、スキル、応募条件などの情報をすべて抽出して日本語でまとめてください。' });
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: headers(S.key),
+      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 2000, messages: [{ role: 'user', content: imgContent }] }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || r.status);
+    const text = data.content[0].text;
+    document.getElementById('jobContent').value = text;
+    setStatus('extractStatus', '✅ 案件情報を読み取りました', 'ok');
+  } catch (e) {
+    setStatus('extractStatus', '❌ 読み取りエラー: ' + e.message, 'err');
+  }
+}
+
+// ── Generate ──────────────────────────────────────────────
+async function generate() {
+  S.title = document.getElementById('jobTitle').value.trim();
+  S.content = document.getElementById('jobContent').value.trim();
+  S.reward = document.getElementById('jobReward').value.trim();
+  S.condition = document.getElementById('myCondition').value.trim();
+  if (!S.title && !S.content) { alert('案件タイトルまたは案件内容を入力してください'); return; }
+
+  goStep(3);
+  setStatus('genStatus', '⏳ 提案文を生成中…', 'info');
+  document.getElementById('proposals').innerHTML = '';
+  document.getElementById('refinePanel').style.display = 'none';
+  document.getElementById('cancelBtn').style.display = 'inline-block';
+  S.proposals = []; S.selected.clear();
+  S.ctl = new AbortController();
+
+  const condNote = S.condition ? `\n\n【自分の稼働条件・補足】\n${S.condition}` : '';
+  const prompt = `あなたはCrowdWorksで活動するフリーランサーです。以下の案件に対して、採用率の高い提案文を3パターン作成してください。
+
+【案件タイトル】${S.title}
+【案件内容】${S.content}
+【報酬・予算】${S.reward}${condNote}
+
+以下のJSON形式で出力してください。他のテキストは不要です。
+{"proposals":[{"title":"パターン1のタイトル","body":"提案文本文"},{"title":"パターン2のタイトル","body":"提案文本文"},{"title":"パターン3のタイトル","body":"提案文本文"}]}
+
+注意:
+- 各提案文は200〜400文字程度
+- 自分の強みと案件への貢献を明確に
+- 稼働条件がある場合は自然な文章で盛り込む
+- JSON以外のテキストは出力しない`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: headers(S.key),
+      signal: S.ctl.signal,
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || r.status);
+    const parsed = safeJson(data.content[0].text);
+    S.proposals = parsed.proposals || [];
+    renderProposals();
+    setStatus('genStatus', `✅ ${S.proposals.length}件の提案文を生成しました`, 'ok');
+    document.getElementById('refinePanel').style.display = 'block';
+  } catch (e) {
+    if (e.name === 'AbortError') setStatus('genStatus', '中断しました', 'info');
+    else setStatus('genStatus', '❌ 生成エラー: ' + e.message, 'err');
+  } finally {
+    document.getElementById('cancelBtn').style.display = 'none';
+    S.ctl = null;
+  }
+}
+
+function cancelGen() {
+  if (S.ctl) { S.ctl.abort(); S.ctl = null; }
+}
+
+function safeJson(s) {
+  s = s.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a === -1 || b === -1) throw new Error('JSONが見つかりません');
+  return JSON.parse(s.slice(a, b + 1));
+}
+
+function renderProposals() {
+  const el = document.getElementById('proposals');
+  el.innerHTML = '';
+  S.proposals.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'proposal-item' + (S.selected.has(i) ? ' selected' : '');
+    div.dataset.i = i;
+    div.onclick = () => {
+      if (S.selected.has(i)) S.selected.delete(i); else S.selected.add(i);
+      div.classList.toggle('selected');
+    };
+    const num = document.createElement('div');
+    num.className = 'proposal-num';
+    num.textContent = `パターン ${i + 1}: ${p.title}`;
+    const body = document.createElement('div');
+    body.className = 'proposal-box';
+    body.textContent = p.body;
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-secondary copy-btn';
+    copyBtn.textContent = 'コピー';
+    copyBtn.onclick = ev => { ev.stopPropagation(); navigator.clipboard.writeText(p.body); copyBtn.textContent = '✅'; setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500); };
+    div.appendChild(num); div.appendChild(body); div.appendChild(copyBtn);
+    el.appendChild(div);
+  });
+}
+
+// ── Refine ────────────────────────────────────────────────
+async function doRefine() {
+  const sel = [...S.selected];
+  if (sel.length === 0) { alert('ブラッシュアップしたい提案文をクリックして選択してください'); return; }
+  const chips = [...document.querySelectorAll('.chip.active')].map(c => c.dataset.v);
+  const custom = document.getElementById('customRefine').value.trim();
+  const instructions = [...chips, custom].filter(Boolean).join('、');
+  if (!instructions) { alert('ブラッシュアップの指示を選択または入力してください'); return; }
+
+  const originals = sel.map(i => S.proposals[i].body).join('\n\n---\n\n');
+  const prompt = `以下の提案文を「${instructions}」という指示に従って改善してください。改善後の提案文のみを出力してください。\n\n${originals}`;
+
+  document.getElementById('refineResult').innerHTML = '<div class="status info">⏳ ブラッシュアップ中…</div>';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST', headers: headers(S.key),
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || r.status);
+    const text = data.content[0].text;
+    const box = document.createElement('div');
+    box.className = 'proposal-box';
+    box.textContent = text;
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn btn-secondary';
+    copyBtn.textContent = 'コピー';
+    copyBtn.style.marginTop = '8px';
+    copyBtn.onclick = () => { navigator.clipboard.writeText(text); copyBtn.textContent = '✅'; setTimeout(() => { copyBtn.textContent = 'コピー'; }, 1500); };
+    const res = document.getElementById('refineResult');
+    res.innerHTML = '';
+    res.appendChild(box); res.appendChild(copyBtn);
+  } catch (e) {
+    document.getElementById('refineResult').innerHTML = '<div class="status err">❌ ' + e.message + '</div>';
+  }
+}
+
+function debounce(fn, ms) {
+  let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
+}
+</script>
+</body>
+</html>
