@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Upwork Proposal Generator</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f7fa; color: #333; min-height: 100vh; }
+  .container { max-width: 760px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 1.5rem; color: #14a800; margin-bottom: 6px; }
+  .subtitle { font-size: 0.85rem; color: #666; margin-bottom: 24px; }
+  .card { background: #fff; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size: 1rem; color: #374151; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  label { display: block; font-size: 0.85rem; color: #555; margin-bottom: 4px; margin-top: 12px; }
+  label:first-of-type { margin-top: 0; }
+  input[type=text], input[type=password], textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 8px;
+    font-size: 0.9rem; font-family: inherit; transition: border .2s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: #14a800; }
+  textarea { resize: vertical; }
+  .btn { display: inline-block; padding: 10px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-family: inherit; transition: background .2s; }
+  .btn-primary { background: #14a800; color: #fff; }
+  .btn-primary:hover { background: #108a00; }
+  .btn-secondary { background: #f3f4f6; color: #374151; }
+  .btn-secondary:hover { background: #e5e7eb; }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  .badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 12px; background: #d1fae5; color: #065f46; }
+  .status { font-size: 0.8rem; padding: 6px 10px; border-radius: 6px; margin-top: 8px; display: none; }
+  .status.ok { background: #dcfce7; color: #166534; }
+  .status.err { background: #fee2e2; color: #991b1b; }
+  .status.info { background: #fef9c3; color: #92400e; }
+  .proposal-box { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 16px; white-space: pre-wrap; font-size: 0.88rem; line-height: 1.7; margin-top: 12px; }
+  .chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { padding: 6px 12px; border-radius: 20px; border: 1px solid #d1d5db; background: #f9fafb; cursor: pointer; font-size: 0.82rem; transition: all .15s; user-select: none; }
+  .chip.active { background: #14a800; color: #fff; border-color: #14a800; }
+  .proposal-item { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px; margin-top: 10px; position: relative; cursor: pointer; }
+  .proposal-item.selected { border-color: #14a800; background: #f0fdf4; }
+  .proposal-num { font-size: 0.75rem; color: #6b7280; margin-bottom: 6px; }
+  .copy-btn { position: absolute; top: 10px; right: 10px; font-size: 0.75rem; padding: 4px 10px; }
+  #step1, #step2, #step3 { display: none; }
+  .img-preview { max-width: 100%; max-height: 200px; border-radius: 6px; margin-top: 8px; display: none; }
+  .section-label { font-size: 0.75rem; color: #9ca3af; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 10px; }
+  .key-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+  .key-row input { flex: 1; }
+  .tip { font-size: 0.78rem; color: #6b7280; background: #f9fafb; border-left: 3px solid #14a800; padding: 8px 12px; border-radius: 4px; margin-top: 8px; }
+  .lang-note { font-size: 0.75rem; color: #9ca3af; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🌐 Upwork Proposal Generator</h1>
+  <p class="subtitle">Generate high-quality Upwork proposals with AI. Your API key is stored only in your browser.</p>
+
+  <!-- Step 1: API Key -->
+  <div class="card" id="step1">
+    <h2>🔑 <span>Step 1 — API Key Setup</span></h2>
+    <label>Anthropic API Key</label>
+    <div class="key-row">
+      <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off">
+      <button class="btn btn-primary" onclick="step1Next()">Connect</button>
+      <button class="btn btn-danger" id="clearBtn" onclick="clearKey()" style="display:none">Delete</button>
+    </div>
+    <div class="status" id="keyStatus"></div>
+    <p style="font-size:0.78rem;color:#9ca3af;margin-top:8px;">Get your API key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>. Never share it with others.</p>
+  </div>
+
+  <!-- Step 2: Job Info -->
+  <div class="card" id="step2">
+    <h2>📋 <span>Step 2 — Job Information</span></h2>
+
+    <label>Job Title</label>
+    <input type="text" id="jobTitle" placeholder="e.g. React Developer for E-commerce Website">
+
+    <label>Job Description <span class="badge">Text or Screenshot</span></label>
+    <textarea id="jobContent" rows="6" placeholder="Paste the job description here, or upload a screenshot below."></textarea>
+
+    <label>Job Screenshot</label>
+    <input type="file" id="imgInput" accept="image/*" onchange="onImg(event)">
+    <img id="imgPreview" class="img-preview">
+    <button class="btn btn-secondary" id="extractBtn" onclick="extractImg()" style="display:none;margin-top:8px;">📷 Extract job info from screenshot</button>
+    <div class="status" id="extractStatus"></div>
+
+    <label>Budget / Rate</label>
+    <input type="text" id="jobReward" placeholder="e.g. $500 fixed / $30/hr">
+
+    <label>Required Skills</label>
+    <input type="text" id="jobSkills" placeholder="e.g. React, Node.js, TypeScript">
+
+    <label>Your Profile & Availability</label>
+    <textarea id="myCondition" rows="3" placeholder="e.g. Available 10hrs/week. I handle multiple projects simultaneously so communication is primarily via chat. Response time within a few hours during business hours (JST)."></textarea>
+    <p class="lang-note">* Write in English. This will be included in your proposal.</p>
+    <p style="font-size:0.75rem;color:#9ca3af;margin-top:4px;">Your input is auto-saved.</p>
+
+    <div class="tip">
+      💡 <strong>Upwork tip:</strong> Start with the client's problem, show relevant experience, and end with a clear call to action.
+    </div>
+
+    <div class="row">
+      <button class="btn btn-primary" onclick="generate()">✨ Generate Proposals</button>
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Results -->
+  <div class="card" id="step3">
+    <h2>💡 <span>Step 3 — Generated Proposals</span></h2>
+    <div class="status" id="genStatus"></div>
+    <div id="proposals"></div>
+
+    <div id="refinePanel" style="display:none;margin-top:20px;">
+      <div class="section-label">Refine selected proposal</div>
+      <div class="chip-group">
+        <div class="chip" data-v="make it more concise">More concise</div>
+        <div class="chip" data-v="make it more professional">More professional</div>
+        <div class="chip" data-v="change the opening line">New opening</div>
+        <div class="chip" data-v="make it more persuasive">More persuasive</div>
+        <div class="chip" data-v="highlight key benefits">Highlight benefits</div>
+        <div class="chip" data-v="make it more friendly and casual">More casual</div>
+        <div class="chip" data-v="add a strong call to action">Add CTA</div>
+      </div>
+      <label style="margin-top:10px;">Custom instruction (optional)</label>
+      <input type="text" id="customRefine" placeholder="e.g. Mention my experience with Shopify">
+      <div class="row">
+        <button class="btn btn-primary" onclick="doRefine()">🔄 Refine</button>
+      </div>
+      <div id="refineResult" style="margin-top:12px;"></div>
+    </div>
+
+    <div class="row" style="margin-top:16px;">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back to job info</button>
+      <button class="btn btn-secondary" id="cancelBtn" onclick="cancelGen()" style="display:none;">⏹ Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY_ST = 'anth_key';
+const COND_ST = 'upwork_condition';
+const S = { key:'', imgB64:'', imgCanvas:null, proposals:[], selected:new Set(), ctl:null };
+
+function goStep(n) {
+  ['step1','step2','step3'].forEach((id,i) => {
+    document.getElementById(id).style.display = n >= i+1 ? 'block' : 'none';
+  });
+}
+
+function setStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.className = 'status ' + type;
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+window.onload = () => {
+  const saved = localStorage.getItem(KEY_ST);
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('clearBtn').style.display = 'inline-block';
+    setStatus('keyStatus', '✅ Saved API key found', 'ok');
+  }
+  const cond = localStorage.getItem(COND_ST);
+  if (cond) document.getElementById('myCondition').value = cond;
+  goStep(1);
+  document.getElementById('myCondition').addEventListener('input', debounce(() =>
+    localStorage.setItem(COND_ST, document.getElementById('myCondition').value), 800));
+  document.querySelectorAll('.chip').forEach(c =>
+    c.addEventListener('click', () => c.classList.toggle('active')));
+};
+
+function hdrs(key) {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': key,
+    'anthropic-version': '2023-06-01',
+    'anthropic-dangerous-direct-browser-access': 'true',
+  };
+}
+
+async function step1Next() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key.startsWith('sk-ant-')) { setStatus('keyStatus','❌ API key must start with sk-ant-','err'); return; }
+  setStatus('keyStatus','Connecting…','info');
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:hdrs(key),
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'hi'}]}),
+    });
+    if (!r.ok) throw new Error((await r.json()).error?.message || r.status);
+    S.key = key;
+    localStorage.setItem(KEY_ST, key);
+    document.getElementById('clearBtn').style.display = 'inline-block';
+    setStatus('keyStatus','✅ Connected! API key saved.','ok');
+    goStep(2);
+  } catch(e) { setStatus('keyStatus','❌ '+e.message,'err'); }
+}
+
+function clearKey() {
+  localStorage.removeItem(KEY_ST);
+  document.getElementById('apiKey').value = '';
+  document.getElementById('clearBtn').style.display = 'none';
+  S.key = '';
+  setStatus('keyStatus','API key deleted','info');
+}
+
+function onImg(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_W = 1000;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      S.imgCanvas = cv;
+      S.imgB64 = cv.toDataURL('image/jpeg', 0.85).split(',')[1];
+      const prev = document.getElementById('imgPreview');
+      prev.src = cv.toDataURL('image/jpeg', 0.85); prev.style.display = 'block';
+      document.getElementById('extractBtn').style.display = 'inline-block';
+      setStatus('extractStatus','Screenshot loaded. Click "Extract job info" to read it.','info');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function splitCanvas(canvas, parts) {
+  const sliceH = Math.ceil(canvas.height / parts), result = [];
+  for (let i = 0; i < parts; i++) {
+    const y = i * sliceH, h = Math.min(sliceH, canvas.height - y);
+    const cv = document.createElement('canvas');
+    cv.width = canvas.width; cv.height = h;
+    cv.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+    result.push(cv.toDataURL('image/jpeg', 0.85).split(',')[1]);
+  }
+  return result;
+}
+
+async function extractImg() {
+  if (!S.imgCanvas) return;
+  setStatus('extractStatus','⏳ Analyzing screenshot…','info');
+  const canvas = S.imgCanvas;
+  const parts = canvas.height > canvas.width * 1.5 ? 3 : 1;
+  const slices = parts > 1 ? splitCanvas(canvas, parts) : [S.imgB64];
+  const content = slices.map(b64 => ({type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}}));
+  content.push({type:'text',text:'This is a screenshot of an Upwork job posting (multiple images are in order from top). Please extract all information: job title, description, required skills, budget/rate, and any other relevant details. Summarize in English.'});
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:hdrs(S.key),
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:2000,messages:[{role:'user',content}]}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || r.status);
+    document.getElementById('jobContent').value = data.content[0].text;
+    setStatus('extractStatus','✅ Job info extracted successfully','ok');
+  } catch(e) { setStatus('extractStatus','❌ Error: '+e.message,'err'); }
+}
+
+async function generate() {
+  const title = document.getElementById('jobTitle').value.trim();
+  const content = document.getElementById('jobContent').value.trim();
+  const budget = document.getElementById('jobReward').value.trim();
+  const skills = document.getElementById('jobSkills').value.trim();
+  const profile = document.getElementById('myCondition').value.trim();
+  if (!title && !content) { alert('Please enter a job title or description.'); return; }
+
+  goStep(3);
+  setStatus('genStatus','⏳ Generating proposals…','info');
+  document.getElementById('proposals').innerHTML = '';
+  document.getElementById('refinePanel').style.display = 'none';
+  document.getElementById('cancelBtn').style.display = 'inline-block';
+  S.proposals = []; S.selected.clear();
+  S.ctl = new AbortController();
+
+  const profileNote = profile ? `\n\nFreelancer's profile & availability:\n${profile}` : '';
+  const prompt = `You are an expert Upwork freelancer who writes winning proposals. Create 3 different proposal variations for the following job. Each proposal should be unique in style and approach.
+
+Job Title: ${title}
+Job Description: ${content}
+Budget/Rate: ${budget}
+Required Skills: ${skills}${profileNote}
+
+Output ONLY the following JSON format, no other text:
+{"proposals":[{"title":"Variation 1 title","body":"proposal text"},{"title":"Variation 2 title","body":"proposal text"},{"title":"Variation 3 title","body":"proposal text"}]}
+
+Guidelines for each proposal:
+- 150-300 words each
+- Start by addressing the client's specific problem or need
+- Highlight 1-2 most relevant experiences or skills
+- Show enthusiasm for the project
+- If availability info is provided, mention it naturally
+- End with a clear call to action
+- Do NOT use generic openers like "I am writing to apply"
+- Make each variation distinctly different in tone/approach
+- Output JSON only, no markdown`;
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:hdrs(S.key), signal:S.ctl.signal,
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message || r.status);
+    const parsed = safeJson(data.content[0].text);
+    S.proposals = parsed.proposals || [];
+    renderProposals();
+    setStatus('genStatus',`✅ ${S.proposals.length} proposals generated`,'ok');
+    document.getElementById('refinePanel').style.display = 'block';
+  } catch(e) {
+    if (e.name==='AbortError') setStatus('genStatus','Cancelled','info');
+    else setStatus('genStatus','❌ Error: '+e.message,'err');
+  } finally {
+    document.getElementById('cancelBtn').style.display = 'none';
+    S.ctl = null;
+  }
+}
+
+function cancelGen() { if (S.ctl) { S.ctl.abort(); S.ctl = null; } }
+
+function safeJson(s) {
+  s = s.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a===-1||b===-1) throw new Error('JSON not found');
+  return JSON.parse(s.slice(a, b+1));
+}
+
+function renderProposals() {
+  const el = document.getElementById('proposals');
+  el.innerHTML = '';
+  S.proposals.forEach((p,i) => {
+    const div = document.createElement('div');
+    div.className = 'proposal-item';
+    div.onclick = () => { S.selected.has(i)?S.selected.delete(i):S.selected.add(i); div.classList.toggle('selected'); };
+    const num = document.createElement('div'); num.className='proposal-num'; num.textContent=`Variation ${i+1}: ${p.title}`;
+    const body = document.createElement('div'); body.className='proposal-box'; body.textContent=p.body;
+    const btn = document.createElement('button'); btn.className='btn btn-secondary copy-btn'; btn.textContent='Copy';
+    btn.onclick = ev => { ev.stopPropagation(); navigator.clipboard.writeText(p.body); btn.textContent='✅'; setTimeout(()=>{btn.textContent='Copy';},1500); };
+    div.appendChild(num); div.appendChild(body); div.appendChild(btn); el.appendChild(div);
+  });
+}
+
+async function doRefine() {
+  const sel = [...S.selected];
+  if (!sel.length) { alert('Click a proposal to select it first.'); return; }
+  const chips = [...document.querySelectorAll('.chip.active')].map(c=>c.dataset.v);
+  const custom = document.getElementById('customRefine').value.trim();
+  const instructions = [...chips,custom].filter(Boolean).join(', ');
+  if (!instructions) { alert('Please select or enter a refinement instruction.'); return; }
+  const originals = sel.map(i=>S.proposals[i].body).join('\n\n---\n\n');
+  const prompt = `Please improve the following Upwork proposal according to this instruction: "${instructions}". Output only the improved proposal text, nothing else.\n\n${originals}`;
+  document.getElementById('refineResult').innerHTML = '<div class="status info" style="display:block">⏳ Refining…</div>';
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST', headers:hdrs(S.key),
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:2000,messages:[{role:'user',content:prompt}]}),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error?.message||r.status);
+    const text = data.content[0].text;
+    const box = document.createElement('div'); box.className='proposal-box'; box.textContent=text;
+    const btn = document.createElement('button'); btn.className='btn btn-secondary'; btn.textContent='Copy'; btn.style.marginTop='8px';
+    btn.onclick = () => { navigator.clipboard.writeText(text); btn.textContent='✅'; setTimeout(()=>{btn.textContent='Copy';},1500); };
+    const res = document.getElementById('refineResult'); res.innerHTML='';
+    res.appendChild(box); res.appendChild(btn);
+  } catch(e) {
+    document.getElementById('refineResult').innerHTML = `<div class="status err" style="display:block">❌ ${e.message}</div>`;
+  }
+}
+
+function debounce(fn,ms) { let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+</script>
+</body>
+</html>
